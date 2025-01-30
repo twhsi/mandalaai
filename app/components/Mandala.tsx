@@ -26,32 +26,38 @@ export const Mandala = ({ data }: MandalaProps) => {
   const [viewMode, setViewMode] = useState<ViewMode>('nine');
   const [expandedCell, setExpandedCell] = useState<MandalaCell | null>(null);
   const [hoveredIndex, setHoveredIndex] = useState<string | null>(null);
+  const [editingCell, setEditingCell] = useState<{ id: string; field: 'title' | 'content' } | null>(null);
 
   const handleIndexClick = (cell: MandalaCell, index: number, event: React.MouseEvent) => {
-    event.stopPropagation(); // 阻止事件冒泡
+    event.stopPropagation();
     
-    // 如果是展开状态下的中心格子（index === 0），点击序号返回上一级
     if (expandedCell && index === 0) {
       setExpandedCell(null);
       return;
     }
     
-    // 如果是初始状态下的格子（除中心外），且有子主题，则展开
     if (!expandedCell && index !== 0 && cell.children && cell.children.length > 0) {
       setExpandedCell(cell);
       return;
     }
   };
 
-  // 获取当前应该显示的数据
+  const handleEdit = (cell: MandalaCell, field: 'title' | 'content') => {
+    setEditingCell({ id: cell.id, field });
+  };
+
+  const handleEditComplete = (cell: MandalaCell, field: 'title' | 'content', value: string) => {
+    // 这里应该添加更新数据的逻辑
+    cell[field] = value;
+    setEditingCell(null);
+  };
+
   const getCurrentGridData = () => {
     if (!expandedCell) {
-      // 初始状态：中心主题在中心，其他主题围绕
       const centerTheme = data[0];
       const surroundingThemes = data.slice(1);
       return [centerTheme, ...surroundingThemes];
     }
-    // 展开状态：被点击的主题在中心，其子主题围绕
     return [expandedCell, ...(expandedCell.children || [])];
   };
 
@@ -72,6 +78,7 @@ export const Mandala = ({ data }: MandalaProps) => {
           const isCenter = index === 0;
           const canExpand = !isCenter && !isSubGrid && cell.children && cell.children.length > 0;
           const canCollapse = isSubGrid && isCenter;
+          const isEditing = editingCell?.id === cell.id;
 
           return (
             <motion.div
@@ -86,15 +93,18 @@ export const Mandala = ({ data }: MandalaProps) => {
               }`}
               style={GRID_POSITIONS[index]}
             >
-              <div className="flex items-center gap-4 mb-2">
+              <div className="relative flex flex-col h-full">
+                {/* 序号部分 - 绝对定位 */}
                 {cell.index && (
                   <div 
-                    className="relative flex items-center cursor-pointer"
+                    className="absolute left-0 top-0"
                     onMouseEnter={() => (canExpand || canCollapse) && setHoveredIndex(cell.id)}
                     onMouseLeave={() => setHoveredIndex(null)}
                     onClick={(e) => handleIndexClick(cell, index, e)}
                   >
-                    <span className="text-lg font-bold text-blue-600 min-w-[24px]">{cell.index}</span>
+                    <span className="text-lg font-bold text-blue-600 cursor-pointer min-w-[24px]">
+                      {cell.index}
+                    </span>
                     {hoveredIndex === cell.id && (canExpand || canCollapse) && (
                       <span className="text-blue-500 absolute -right-4">
                         {canCollapse ? '↑' : '↓'}
@@ -102,9 +112,48 @@ export const Mandala = ({ data }: MandalaProps) => {
                     )}
                   </div>
                 )}
-                <h3 className="text-xl font-semibold text-center flex-1">{cell.title}</h3>
+
+                {/* 标题部分 - 居中显示 */}
+                <div className="text-center mb-2 mt-1">
+                  {isEditing && editingCell.field === 'title' ? (
+                    <input
+                      type="text"
+                      className="w-full text-center text-xl font-semibold border-b border-blue-500 focus:outline-none bg-transparent"
+                      defaultValue={cell.title}
+                      autoFocus
+                      onBlur={(e) => handleEditComplete(cell, 'title', e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && handleEditComplete(cell, 'title', e.currentTarget.value)}
+                    />
+                  ) : (
+                    <h3 
+                      className="text-xl font-semibold cursor-pointer hover:text-blue-600"
+                      onClick={() => handleEdit(cell, 'title')}
+                    >
+                      {cell.title}
+                    </h3>
+                  )}
+                </div>
+
+                {/* 内容部分 - 占据剩余空间 */}
+                <div 
+                  className="flex-1 cursor-pointer"
+                  onClick={() => handleEdit(cell, 'content')}
+                >
+                  {isEditing && editingCell.field === 'content' ? (
+                    <textarea
+                      className="w-full h-full min-h-[80px] text-gray-600 border border-blue-500 rounded p-2 focus:outline-none bg-transparent resize-none"
+                      defaultValue={cell.content}
+                      autoFocus
+                      onBlur={(e) => handleEditComplete(cell, 'content', e.target.value)}
+                      style={{ height: 'calc(100% - 8px)' }}
+                    />
+                  ) : (
+                    <p className="text-gray-600 hover:text-blue-600">
+                      {cell.content}
+                    </p>
+                  )}
+                </div>
               </div>
-              <p className="text-gray-600">{cell.content}</p>
             </motion.div>
           );
         })}

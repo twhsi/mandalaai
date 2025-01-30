@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { MandalaCell } from '../types/mandala';
 import { motion } from 'framer-motion';
 
@@ -23,23 +24,84 @@ const GRID_POSITIONS = [
 ];
 
 export const EightyOneGrid = ({ data, onNavigateToParent, onCellSelect }: EightyOneGridProps) => {
-  // 将数据组织成九宫格布局
-  const organizeData = () => {
-    const mainCells = data.map((cell, index) => ({
-      ...cell,
-      position: GRID_POSITIONS[index],
-    }));
-
-    return mainCells;
-  };
-
-  const organizedData = organizeData();
-  const centerCell = data[0]; // 中心主题
-  const mainThemes = data.slice(1); // 甲乙丙丁...主题
+  const [editingCell, setEditingCell] = useState<{ id: string; field: 'title' | 'content' } | null>(null);
+  const centerCell = data[0];
+  const mainThemes = data.slice(1);
 
   const handleIndexClick = (cell: MandalaCell, event: React.MouseEvent) => {
     event.stopPropagation();
     onCellSelect(cell);
+  };
+
+  const handleEdit = (cell: MandalaCell, field: 'title' | 'content') => {
+    setEditingCell({ id: cell.id, field });
+  };
+
+  const handleEditComplete = (cell: MandalaCell, field: 'title' | 'content', value: string) => {
+    // 这里应该添加更新数据的逻辑
+    cell[field] = value;
+    setEditingCell(null);
+  };
+
+  const renderCell = (cell: MandalaCell, isMainCell: boolean = false) => {
+    const isEditing = editingCell?.id === cell.id;
+
+    return (
+      <div className="relative flex flex-col h-full">
+        {/* 序号部分 */}
+        {cell.index && (
+          <div className="absolute left-0 top-0">
+            <span 
+              className={`text-sm font-bold text-blue-600 ${isMainCell ? 'cursor-pointer hover:text-blue-800' : ''}`}
+              onClick={isMainCell ? (e) => handleIndexClick(cell, e) : undefined}
+            >
+              {cell.index}
+            </span>
+          </div>
+        )}
+
+        {/* 标题部分 */}
+        <div className="text-center mb-1 mt-1">
+          {isEditing && editingCell.field === 'title' ? (
+            <input
+              type="text"
+              className="w-full text-center text-sm font-semibold border-b border-blue-500 focus:outline-none bg-transparent"
+              defaultValue={cell.title}
+              autoFocus
+              onBlur={(e) => handleEditComplete(cell, 'title', e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && handleEditComplete(cell, 'title', e.currentTarget.value)}
+            />
+          ) : (
+            <h4 
+              className="text-sm font-semibold cursor-pointer hover:text-blue-600 truncate"
+              onClick={() => handleEdit(cell, 'title')}
+            >
+              {cell.title}
+            </h4>
+          )}
+        </div>
+
+        {/* 内容部分 - 占据剩余空间 */}
+        <div 
+          className="flex-1 cursor-pointer"
+          onClick={() => handleEdit(cell, 'content')}
+        >
+          {isEditing && editingCell.field === 'content' ? (
+            <textarea
+              className="w-full h-full min-h-[40px] text-xs text-gray-600 border border-blue-500 rounded p-1 focus:outline-none bg-transparent resize-none"
+              defaultValue={cell.content}
+              autoFocus
+              onBlur={(e) => handleEditComplete(cell, 'content', e.target.value)}
+              style={{ height: 'calc(100% - 4px)' }}
+            />
+          ) : (
+            <p className="text-xs text-gray-600 hover:text-blue-600 line-clamp-2">
+              {cell.content}
+            </p>
+          )}
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -59,10 +121,7 @@ export const EightyOneGrid = ({ data, onNavigateToParent, onCellSelect }: Eighty
           className="bg-blue-50 shadow-md p-2 rounded-lg"
           style={GRID_POSITIONS[0]}
         >
-          <div className="flex items-center gap-2 mb-1">
-            <h4 className="text-sm font-semibold truncate flex-1">{centerCell.title}</h4>
-          </div>
-          <p className="text-xs text-gray-600 line-clamp-2">{centerCell.content}</p>
+          {renderCell(centerCell)}
         </motion.div>
 
         {/* 甲乙丙丁... */}
@@ -76,11 +135,7 @@ export const EightyOneGrid = ({ data, onNavigateToParent, onCellSelect }: Eighty
             className="bg-white shadow-md p-2 rounded-lg"
             style={GRID_POSITIONS[index + 1]}
           >
-            <div className="flex items-center gap-2 mb-1">
-              <span className="text-sm font-bold text-blue-600">{mainCell.index}</span>
-              <h4 className="text-sm font-semibold truncate flex-1">{mainCell.title}</h4>
-            </div>
-            <p className="text-xs text-gray-600 line-clamp-2">{mainCell.content}</p>
+            {renderCell(mainCell)}
           </motion.div>
         ))}
       </div>
@@ -102,16 +157,7 @@ export const EightyOneGrid = ({ data, onNavigateToParent, onCellSelect }: Eighty
             className="bg-white shadow-md p-2 rounded-lg"
             style={GRID_POSITIONS[0]}
           >
-            <div className="flex items-center gap-2 mb-1">
-              <span 
-                className="text-sm font-bold text-blue-600 cursor-pointer hover:text-blue-800"
-                onClick={(e) => handleIndexClick(mainCell, e)}
-              >
-                {mainCell.index}
-              </span>
-              <h4 className="text-sm font-semibold truncate flex-1">{mainCell.title}</h4>
-            </div>
-            <p className="text-xs text-gray-600 line-clamp-2">{mainCell.content}</p>
+            {renderCell(mainCell, true)}
           </motion.div>
 
           {/* A-H 子主题 */}
@@ -125,11 +171,7 @@ export const EightyOneGrid = ({ data, onNavigateToParent, onCellSelect }: Eighty
               className="bg-white shadow-md p-2 rounded-lg"
               style={GRID_POSITIONS[subIndex + 1]}
             >
-              <div className="flex items-center gap-2 mb-1">
-                <span className="text-sm font-bold text-blue-600">{subCell.index}</span>
-                <h4 className="text-sm font-semibold truncate flex-1">{subCell.title}</h4>
-              </div>
-              <p className="text-xs text-gray-600 line-clamp-2">{subCell.content}</p>
+              {renderCell(subCell)}
             </motion.div>
           ))}
         </div>
