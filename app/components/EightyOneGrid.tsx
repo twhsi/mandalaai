@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 interface EightyOneGridProps {
   data: MandalaCell[];
   onNavigateToParent: () => void;
+  onCellSelect: (cell: MandalaCell) => void;
 }
 
 // 定义九宫格位置映射
@@ -21,7 +22,7 @@ const GRID_POSITIONS = [
   { gridArea: '3 / 3 / 4 / 4' }, // 右下 8
 ];
 
-export const EightyOneGrid = ({ data, onNavigateToParent }: EightyOneGridProps) => {
+export const EightyOneGrid = ({ data, onNavigateToParent, onCellSelect }: EightyOneGridProps) => {
   // 将数据组织成九宫格布局
   const organizeData = () => {
     const mainCells = data.map((cell, index) => ({
@@ -35,6 +36,11 @@ export const EightyOneGrid = ({ data, onNavigateToParent }: EightyOneGridProps) 
   const organizedData = organizeData();
   const centerCell = data[0]; // 中心主题
   const mainThemes = data.slice(1); // 甲乙丙丁...主题
+
+  const handleIndexClick = (cell: MandalaCell, event: React.MouseEvent) => {
+    event.stopPropagation();
+    onCellSelect(cell);
+  };
 
   return (
     <div className="grid grid-cols-3 grid-rows-3 gap-4 aspect-square" style={{ maxWidth: '1200px', margin: '0 auto' }}>
@@ -97,7 +103,12 @@ export const EightyOneGrid = ({ data, onNavigateToParent }: EightyOneGridProps) 
             style={GRID_POSITIONS[0]}
           >
             <div className="flex items-center gap-2 mb-1">
-              <span className="text-sm font-bold text-blue-600">{mainCell.index}</span>
+              <span 
+                className="text-sm font-bold text-blue-600 cursor-pointer hover:text-blue-800"
+                onClick={(e) => handleIndexClick(mainCell, e)}
+              >
+                {mainCell.index}
+              </span>
               <h4 className="text-sm font-semibold truncate flex-1">{mainCell.title}</h4>
             </div>
             <p className="text-xs text-gray-600 line-clamp-2">{mainCell.content}</p>

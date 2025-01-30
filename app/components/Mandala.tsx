@@ -27,21 +27,29 @@ export const Mandala = ({ data }: MandalaProps) => {
   const [expandedCell, setExpandedCell] = useState<MandalaCell | null>(null);
   const [hoveredIndex, setHoveredIndex] = useState<string | null>(null);
 
-  const handleCellClick = (cell: MandalaCell, index: number) => {
-    // 中心格子（index === 0）不可点击展开
-    if (index === 0) return;
-
-    if (expandedCell?.id === cell.id) {
+  const handleIndexClick = (cell: MandalaCell, index: number, event: React.MouseEvent) => {
+    event.stopPropagation(); // 阻止事件冒泡
+    
+    // 如果是展开状态下的中心格子（index === 0），点击序号返回上一级
+    if (expandedCell && index === 0) {
       setExpandedCell(null);
-    } else if (cell.children && cell.children.length > 0) {
+      return;
+    }
+    
+    // 如果是初始状态下的格子（除中心外），且有子主题，则展开
+    if (!expandedCell && index !== 0 && cell.children && cell.children.length > 0) {
       setExpandedCell(cell);
+      return;
     }
   };
 
   // 获取当前应该显示的数据
   const getCurrentGridData = () => {
     if (!expandedCell) {
-      return data;
+      // 初始状态：中心主题在中心，其他主题围绕
+      const centerTheme = data[0];
+      const surroundingThemes = data.slice(1);
+      return [centerTheme, ...surroundingThemes];
     }
     // 展开状态：被点击的主题在中心，其子主题围绕
     return [expandedCell, ...(expandedCell.children || [])];
@@ -62,7 +70,8 @@ export const Mandala = ({ data }: MandalaProps) => {
       >
         {currentData.map((cell, index) => {
           const isCenter = index === 0;
-          const canExpand = !isCenter && cell.children && cell.children.length > 0;
+          const canExpand = !isCenter && !isSubGrid && cell.children && cell.children.length > 0;
+          const canCollapse = isSubGrid && isCenter;
 
           return (
             <motion.div
@@ -72,23 +81,23 @@ export const Mandala = ({ data }: MandalaProps) => {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.8 }}
               transition={{ duration: 0.3 }}
-              className={`bg-white rounded-lg shadow-lg p-4 ${canExpand ? 'cursor-pointer hover:shadow-xl' : ''} ${
+              className={`bg-white rounded-lg shadow-lg p-4 ${
                 isCenter ? 'bg-blue-50' : ''
               }`}
               style={GRID_POSITIONS[index]}
-              onClick={() => handleCellClick(cell, index)}
             >
               <div className="flex items-center gap-4 mb-2">
                 {cell.index && (
                   <div 
-                    className="relative flex items-center"
-                    onMouseEnter={() => canExpand && setHoveredIndex(cell.id)}
+                    className="relative flex items-center cursor-pointer"
+                    onMouseEnter={() => (canExpand || canCollapse) && setHoveredIndex(cell.id)}
                     onMouseLeave={() => setHoveredIndex(null)}
+                    onClick={(e) => handleIndexClick(cell, index, e)}
                   >
                     <span className="text-lg font-bold text-blue-600 min-w-[24px]">{cell.index}</span>
-                    {hoveredIndex === cell.id && canExpand && (
+                    {hoveredIndex === cell.id && (canExpand || canCollapse) && (
                       <span className="text-blue-500 absolute -right-4">
-                        {expandedCell?.id === cell.id ? '↑' : '↓'}
+                        {canCollapse ? '↑' : '↓'}
                       </span>
                     )}
                   </div>
@@ -142,6 +151,10 @@ export const Mandala = ({ data }: MandalaProps) => {
               onNavigateToParent={() => {
                 setViewMode('nine');
                 setExpandedCell(null);
+              }}
+              onCellSelect={(cell) => {
+                setViewMode('nine');
+                setExpandedCell(cell);
               }}
             />
           </motion.div>
