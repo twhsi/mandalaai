@@ -100,16 +100,16 @@ export const Mandala = ({ data, onDataChange }: MandalaProps) => {
                 {/* 序号部分 - 绝对定位 */}
                 {cell.index && (
                   <div 
-                    className="absolute"
+                    className="absolute flex items-center"
                     onMouseEnter={() => (canExpand || canCollapse) && setHoveredIndex(cell.id)}
                     onMouseLeave={() => setHoveredIndex(null)}
                     onClick={(e) => handleIndexClick(cell, index, e)}
                   >
-                    <span className="text-2xl font-bold text-blue-600 cursor-pointer min-w-[32px] block">
+                    <span className="text-2xl font-bold text-blue-600 cursor-pointer min-w-[32px]">
                       {cell.index}
                     </span>
                     {hoveredIndex === cell.id && (canExpand || canCollapse) && (
-                      <span className="text-blue-500 absolute -right-4 text-xl">
+                      <span className="text-blue-500 text-xl ml-1">
                         {canCollapse ? '↑' : '↓'}
                       </span>
                     )}
@@ -117,7 +117,7 @@ export const Mandala = ({ data, onDataChange }: MandalaProps) => {
                 )}
 
                 {/* 标题部分 - 居中显示，避开序号 */}
-                <div className="text-center mb-2 mt-1 ml-12">
+                <div className="text-center mb-2 mt-1 mx-6">
                   {isEditing && editingCell.field === 'title' ? (
                     <input
                       type="text"
@@ -218,7 +218,7 @@ export const Mandala = ({ data, onDataChange }: MandalaProps) => {
 
   return (
     <div className="w-full max-w-6xl mx-auto p-4">
-      <div className="flex gap-4 mb-4 flex-wrap">
+      <div className="flex gap-4 mb-4 flex-wrap justify-center">
         <button
           onClick={() => {
             setViewMode('nine');

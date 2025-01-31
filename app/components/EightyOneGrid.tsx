@@ -96,7 +96,7 @@ export const EightyOneGrid = ({ data, onNavigateToParent, onCellSelect }: Eighty
         )}
 
         {/* 标题部分 */}
-        <div className="text-center mb-1 mt-1 ml-8">
+        <div className="text-center mb-1 mt-1 mx-4">
           {isEditing && editingCell.field === 'title' ? (
             <input
               type="text"
