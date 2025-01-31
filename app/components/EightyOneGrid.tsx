@@ -23,6 +23,32 @@ const GRID_POSITIONS = [
   { gridArea: '3 / 3 / 4 / 4' }, // 右下 8
 ];
 
+// 定义大宫格的背景色
+const GRID_COLORS = [
+  'bg-blue-50/30',    // 中心大宫格
+  'bg-pink-50/30',    // 中下大宫格
+  'bg-purple-50/30',  // 中左大宫格
+  'bg-green-50/30',   // 中上大宫格
+  'bg-yellow-50/30',  // 中右大宫格
+  'bg-red-50/30',     // 左下大宫格
+  'bg-indigo-50/30',  // 左上大宫格
+  'bg-orange-50/30',  // 右上大宫格
+  'bg-teal-50/30',    // 右下大宫格
+];
+
+// 定义中心卡片的背景色
+const CENTER_COLORS = [
+  'bg-blue-100',    // 中心大宫格的中心
+  'bg-pink-100',    // 中下大宫格的中心
+  'bg-purple-100',  // 中左大宫格的中心
+  'bg-green-100',   // 中上大宫格的中心
+  'bg-yellow-100',  // 中右大宫格的中心
+  'bg-red-100',     // 左下大宫格的中心
+  'bg-indigo-100',  // 左上大宫格的中心
+  'bg-orange-100',  // 右上大宫格的中心
+  'bg-teal-100',    // 右下大宫格的中心
+];
+
 export const EightyOneGrid = ({ data, onNavigateToParent, onCellSelect }: EightyOneGridProps) => {
   const [editingCell, setEditingCell] = useState<{ id: string; field: 'title' | 'content' } | null>(null);
   const centerCell = data[0];
@@ -38,8 +64,17 @@ export const EightyOneGrid = ({ data, onNavigateToParent, onCellSelect }: Eighty
   };
 
   const handleEditComplete = (cell: MandalaCell, field: 'title' | 'content', value: string) => {
-    // 这里应该添加更新数据的逻辑
-    cell[field] = value;
+    // 更新所有相同 ID 的单元格
+    const updateCellContent = (cells: MandalaCell[]) => {
+      cells.forEach(c => {
+        if (c.id === cell.id) {
+          c[field] = value;
+        }
+      });
+    };
+
+    // 更新主题数组
+    updateCellContent(data);
     setEditingCell(null);
   };
 
@@ -50,9 +85,9 @@ export const EightyOneGrid = ({ data, onNavigateToParent, onCellSelect }: Eighty
       <div className="relative flex flex-col h-full">
         {/* 序号部分 */}
         {cell.index && (
-          <div className="absolute left-0 top-0">
+          <div className="absolute">
             <span 
-              className={`text-sm font-bold text-blue-600 ${isMainCell ? 'cursor-pointer hover:text-blue-800' : ''}`}
+              className={`text-lg font-bold text-blue-600 min-w-[24px] block ${isMainCell ? 'cursor-pointer hover:text-blue-800' : ''}`}
               onClick={isMainCell ? (e) => handleIndexClick(cell, e) : undefined}
             >
               {cell.index}
@@ -61,7 +96,7 @@ export const EightyOneGrid = ({ data, onNavigateToParent, onCellSelect }: Eighty
         )}
 
         {/* 标题部分 */}
-        <div className="text-center mb-1 mt-1">
+        <div className="text-center mb-1 mt-1 ml-8">
           {isEditing && editingCell.field === 'title' ? (
             <input
               type="text"
@@ -108,7 +143,7 @@ export const EightyOneGrid = ({ data, onNavigateToParent, onCellSelect }: Eighty
     <div className="grid grid-cols-3 grid-rows-3 gap-4 aspect-square" style={{ maxWidth: '1200px', margin: '0 auto' }}>
       {/* 中心大格子 */}
       <div
-        className="grid grid-cols-3 grid-rows-3 gap-2"
+        className={`grid grid-cols-3 grid-rows-3 gap-2 rounded-lg p-2 ${GRID_COLORS[0]}`}
         style={GRID_POSITIONS[0]}
       >
         {/* 中心主题 */}
@@ -118,7 +153,7 @@ export const EightyOneGrid = ({ data, onNavigateToParent, onCellSelect }: Eighty
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.3 }}
-          className="bg-blue-50 shadow-md p-2 rounded-lg"
+          className={`shadow-md p-2 rounded-lg ${CENTER_COLORS[0]}`}
           style={GRID_POSITIONS[0]}
         >
           {renderCell(centerCell)}
@@ -144,7 +179,7 @@ export const EightyOneGrid = ({ data, onNavigateToParent, onCellSelect }: Eighty
       {mainThemes.slice(0, 8).map((mainCell, mainIndex) => (
         <div
           key={mainCell.id}
-          className="grid grid-cols-3 grid-rows-3 gap-2"
+          className={`grid grid-cols-3 grid-rows-3 gap-2 rounded-lg p-2 ${GRID_COLORS[mainIndex + 1]}`}
           style={GRID_POSITIONS[mainIndex + 1]}
         >
           {/* 子主题中心（甲/乙/丙/丁...） */}
@@ -154,7 +189,7 @@ export const EightyOneGrid = ({ data, onNavigateToParent, onCellSelect }: Eighty
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.3 }}
-            className="bg-white shadow-md p-2 rounded-lg"
+            className={`shadow-md p-2 rounded-lg ${CENTER_COLORS[mainIndex + 1]}`}
             style={GRID_POSITIONS[0]}
           >
             {renderCell(mainCell, true)}

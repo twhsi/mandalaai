@@ -97,24 +97,24 @@ export const Mandala = ({ data }: MandalaProps) => {
                 {/* 序号部分 - 绝对定位 */}
                 {cell.index && (
                   <div 
-                    className="absolute left-0 top-0"
+                    className="absolute"
                     onMouseEnter={() => (canExpand || canCollapse) && setHoveredIndex(cell.id)}
                     onMouseLeave={() => setHoveredIndex(null)}
                     onClick={(e) => handleIndexClick(cell, index, e)}
                   >
-                    <span className="text-lg font-bold text-blue-600 cursor-pointer min-w-[24px]">
+                    <span className="text-2xl font-bold text-blue-600 cursor-pointer min-w-[32px] block">
                       {cell.index}
                     </span>
                     {hoveredIndex === cell.id && (canExpand || canCollapse) && (
-                      <span className="text-blue-500 absolute -right-4">
+                      <span className="text-blue-500 absolute -right-4 text-xl">
                         {canCollapse ? '↑' : '↓'}
                       </span>
                     )}
                   </div>
                 )}
 
-                {/* 标题部分 - 居中显示 */}
-                <div className="text-center mb-2 mt-1">
+                {/* 标题部分 - 居中显示，避开序号 */}
+                <div className="text-center mb-2 mt-1 ml-12">
                   {isEditing && editingCell.field === 'title' ? (
                     <input
                       type="text"
