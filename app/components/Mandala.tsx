@@ -1,12 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { MandalaCell, ViewMode } from '../types/mandala';
 import { motion, AnimatePresence } from 'framer-motion';
 import { EightyOneGrid } from './EightyOneGrid';
+import html2canvas from 'html2canvas';
 
 interface MandalaProps {
   data: MandalaCell[];
+  onDataChange?: (newData: MandalaCell[]) => void;
 }
 
 // 定义九宫格位置映射
@@ -22,11 +24,12 @@ const GRID_POSITIONS = [
   { gridArea: '3 / 3 / 4 / 4' }, // 右下 8
 ];
 
-export const Mandala = ({ data }: MandalaProps) => {
+export const Mandala = ({ data, onDataChange }: MandalaProps) => {
   const [viewMode, setViewMode] = useState<ViewMode>('nine');
   const [expandedCell, setExpandedCell] = useState<MandalaCell | null>(null);
   const [hoveredIndex, setHoveredIndex] = useState<string | null>(null);
   const [editingCell, setEditingCell] = useState<{ id: string; field: 'title' | 'content' } | null>(null);
+  const mandalaRef = useRef<HTMLDivElement>(null);
 
   const handleIndexClick = (cell: MandalaCell, index: number, event: React.MouseEvent) => {
     event.stopPropagation();
@@ -47,9 +50,9 @@ export const Mandala = ({ data }: MandalaProps) => {
   };
 
   const handleEditComplete = (cell: MandalaCell, field: 'title' | 'content', value: string) => {
-    // 这里应该添加更新数据的逻辑
     cell[field] = value;
     setEditingCell(null);
+    onDataChange?.(data);
   };
 
   const getCurrentGridData = () => {
@@ -161,9 +164,61 @@ export const Mandala = ({ data }: MandalaProps) => {
     );
   };
 
+  const exportToImage = async () => {
+    if (!mandalaRef.current) return;
+    
+    try {
+      const canvas = await html2canvas(mandalaRef.current);
+      const link = document.createElement('a');
+      link.download = `mandala-${new Date().toISOString().slice(0, 10)}.png`;
+      link.href = canvas.toDataURL();
+      link.click();
+    } catch (error) {
+      console.error('导出图片失败:', error);
+    }
+  };
+
+  const exportToMarkdown = () => {
+    let markdown = '# 曼陀罗思维导图\n\n';
+    
+    const processCell = (cell: MandalaCell, level: number = 1) => {
+      markdown += `${'#'.repeat(level)} ${cell.index} ${cell.title}\n\n`;
+      if (cell.content) {
+        markdown += `${cell.content}\n\n`;
+      }
+      if (cell.children?.length) {
+        cell.children.forEach(child => processCell(child, level + 1));
+      }
+    };
+
+    data.forEach(cell => processCell(cell));
+    
+    const blob = new Blob([markdown], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.download = `mandala-${new Date().toISOString().slice(0, 10)}.txt`;
+    link.href = url;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const clearContent = () => {
+    const clearCell = (cell: MandalaCell) => {
+      cell.title = '';
+      cell.content = '';
+      if (cell.children?.length) {
+        cell.children.forEach(clearCell);
+      }
+    };
+
+    const newData = [...data];
+    newData.forEach(clearCell);
+    onDataChange?.(newData);
+  };
+
   return (
     <div className="w-full max-w-6xl mx-auto p-4">
-      <div className="flex gap-4 mb-4">
+      <div className="flex gap-4 mb-4 flex-wrap">
         <button
           onClick={() => {
             setViewMode('nine');
@@ -183,32 +238,56 @@ export const Mandala = ({ data }: MandalaProps) => {
         >
           八十一宫格
         </button>
+        <button
+          onClick={exportToImage}
+          className="px-4 py-2 rounded bg-green-500 text-white hover:bg-green-600 transition-colors"
+        >
+          导出图片
+        </button>
+        <button
+          onClick={exportToMarkdown}
+          className="px-4 py-2 rounded bg-purple-500 text-white hover:bg-purple-600 transition-colors"
+        >
+          导出文本
+        </button>
+        <button
+          onClick={() => {
+            if (window.confirm('确定要清空所有内容吗？此操作不可撤销。')) {
+              clearContent();
+            }
+          }}
+          className="px-4 py-2 rounded bg-red-500 text-white hover:bg-red-600 transition-colors"
+        >
+          清空内容
+        </button>
       </div>
 
-      <AnimatePresence mode="wait">
-        {viewMode === 'nine' ? (
-          renderNineGrid()
-        ) : (
-          <motion.div
-            key="eightyone-grid"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <EightyOneGrid
-              data={data}
-              onNavigateToParent={() => {
-                setViewMode('nine');
-                setExpandedCell(null);
-              }}
-              onCellSelect={(cell) => {
-                setViewMode('nine');
-                setExpandedCell(cell);
-              }}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <div ref={mandalaRef}>
+        <AnimatePresence mode="wait">
+          {viewMode === 'nine' ? (
+            renderNineGrid()
+          ) : (
+            <motion.div
+              key="eightyone-grid"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              <EightyOneGrid
+                data={data}
+                onNavigateToParent={() => {
+                  setViewMode('nine');
+                  setExpandedCell(null);
+                }}
+                onCellSelect={(cell) => {
+                  setViewMode('nine');
+                  setExpandedCell(cell);
+                }}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   );
 }; 
