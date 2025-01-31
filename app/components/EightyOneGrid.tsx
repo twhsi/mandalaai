@@ -49,6 +49,7 @@ const CENTER_COLORS = [
   'bg-teal-100',    // 右下大宫格的中心
 ];
 
+
 export const EightyOneGrid = ({ data, onNavigateToParent, onCellSelect }: EightyOneGridProps) => {
   const [editingCell, setEditingCell] = useState<{ id: string; field: 'title' | 'content' } | null>(null);
   const centerCell = data[0];
@@ -96,7 +97,7 @@ export const EightyOneGrid = ({ data, onNavigateToParent, onCellSelect }: Eighty
         )}
 
         {/* 标题部分 */}
-        <div className="text-center mb-1 mt-1 mx-4">
+        <div className="text-center mb-1 mt-1 mx-4 flex items-center justify-center" style={{ minHeight: '24px' }}>
           {isEditing && editingCell.field === 'title' ? (
             <input
               type="text"
@@ -107,12 +108,13 @@ export const EightyOneGrid = ({ data, onNavigateToParent, onCellSelect }: Eighty
               onKeyPress={(e) => e.key === 'Enter' && handleEditComplete(cell, 'title', e.currentTarget.value)}
             />
           ) : (
-            <h4 
-              className="text-sm font-semibold cursor-pointer hover:text-blue-600 truncate"
+            <div 
+              className="text-sm font-semibold cursor-pointer hover:text-blue-600 px-1 py-0.5"
               onClick={() => handleEdit(cell, 'title')}
+              style={{ lineHeight: '1.4', wordBreak: 'break-word' }}
             >
               {cell.title}
-            </h4>
+            </div>
           )}
         </div>
 
@@ -130,9 +132,9 @@ export const EightyOneGrid = ({ data, onNavigateToParent, onCellSelect }: Eighty
               style={{ height: 'calc(100% - 4px)' }}
             />
           ) : (
-            <p className="text-xs text-gray-600 hover:text-blue-600 line-clamp-2">
+            <div className="w-full h-full text-xs text-gray-600 text-center flex items-center justify-center p-1">
               {cell.content}
-            </p>
+            </div>
           )}
         </div>
       </div>
