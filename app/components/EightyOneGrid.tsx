@@ -57,7 +57,11 @@ export const EightyOneGrid = ({ data, onNavigateToParent, onCellSelect }: Eighty
 
   const handleIndexClick = (cell: MandalaCell, event: React.MouseEvent) => {
     event.stopPropagation();
-    onCellSelect(cell);
+    if (cell.id === centerCell.id) {
+      onNavigateToParent();
+    } else {
+      onCellSelect(cell);
+    }
   };
 
   const handleEdit = (cell: MandalaCell, field: 'title' | 'content') => {
@@ -215,32 +219,4 @@ export const EightyOneGrid = ({ data, onNavigateToParent, onCellSelect }: Eighty
       ))}
     </div>
   );
-};
-
-// 计算子单元格在数组中的索引
-function getSubCellIndex(row: number, col: number): number {
-  const centerRow = 4;
-  const centerCol = 4;
-  
-  // 如果是中心格子，返回-1
-  if (row === centerRow && col === centerCol) return -1;
-  
-  // 计算相对于中心的位置
-  const relRow = row - centerRow;
-  const relCol = col - centerCol;
-  
-  // 如果不在3x3的范围内，返回-1
-  if (Math.abs(relRow) > 1 || Math.abs(relCol) > 1) return -1;
-  
-  // 计算在8个方向中的位置（顺时针方向）
-  if (relRow === -1 && relCol === 0) return 0; // 上
-  if (relRow === -1 && relCol === 1) return 1; // 右上
-  if (relRow === 0 && relCol === 1) return 2; // 右
-  if (relRow === 1 && relCol === 1) return 3; // 右下
-  if (relRow === 1 && relCol === 0) return 4; // 下
-  if (relRow === 1 && relCol === -1) return 5; // 左下
-  if (relRow === 0 && relCol === -1) return 6; // 左
-  if (relRow === -1 && relCol === -1) return 7; // 左上
-  
-  return -1;
-} 
+}; 
