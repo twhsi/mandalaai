@@ -179,19 +179,32 @@ export const Mandala = ({ data, onDataChange }: MandalaProps) => {
   };
 
   const exportToMarkdown = () => {
-    let markdown = '# 曼陀罗思维导图\n\n';
+    let markdown = '';
     
-    const processCell = (cell: MandalaCell, level: number = 1) => {
-      markdown += `${'#'.repeat(level)} ${cell.index} ${cell.title}\n\n`;
-      if (cell.content) {
-        markdown += `${cell.content}\n\n`;
-      }
-      if (cell.children?.length) {
-        cell.children.forEach(child => processCell(child, level + 1));
-      }
-    };
+    // 处理中心主题
+    const centerCell = data[0];
+    markdown += `# ${centerCell.title}\n\n`;
+    if (centerCell.content) {
+      markdown += `${centerCell.content}\n\n`;
+    }
 
-    data.forEach(cell => processCell(cell));
+    // 处理八个主要方向（甲乙丙丁...）
+    data.slice(1).forEach(mainCell => {
+      markdown += `## ${mainCell.index} ${mainCell.title}\n\n`;
+      if (mainCell.content) {
+        markdown += `${mainCell.content}\n\n`;
+      }
+      
+      // 处理每个主要方向的子主题（A-H）
+      if (mainCell.children?.length) {
+        mainCell.children.forEach(subCell => {
+          markdown += `### ${subCell.index} ${subCell.title}\n\n`;
+          if (subCell.content) {
+            markdown += `${subCell.content}\n\n`;
+          }
+        });
+      }
+    });
     
     const blob = new Blob([markdown], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
