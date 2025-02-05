@@ -515,7 +515,9 @@ export const Mandala = ({ data, onDataChange }: MandalaProps) => {
         >
           <AnimatePresence mode="wait">
             {viewMode === 'nine' ? (
-              renderNineGrid()
+              <div style={{ opacity: 1 }}>
+                {renderNineGrid()}
+              </div>
             ) : (
               <motion.div
                 key="eightyone-grid"
