@@ -59,7 +59,7 @@ export const MandalaCard = ({
               defaultValue={cell.title}
               autoFocus
               onBlur={(e) => onEditComplete(cell, 'title', e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && onEditComplete(cell, 'title', e.currentTarget.value)}
+              onKeyDown={(e) => e.key === 'Enter' && onEditComplete(cell, 'title', e.currentTarget.value)}
             />
           ) : (
             <div 
@@ -92,6 +92,11 @@ export const MandalaCard = ({
               defaultValue={cell.content}
               autoFocus
               onBlur={(e) => onEditComplete(cell, 'content', e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && e.ctrlKey) {
+                  onEditComplete(cell, 'content', e.currentTarget.value);
+                }
+              }}
               style={{ height: 'calc(100% - 4px)' }}
             />
           ) : (

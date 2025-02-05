@@ -359,7 +359,7 @@ export const Mandala = ({ data, onDataChange }: MandalaProps) => {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
-      <div className="flex gap-4 p-4 flex-wrap justify-center items-center bg-gray-50 sticky top-0 z-50">
+      <div className="flex gap-4 p-4 flex-wrap justify-center items-center sticky top-0 z-50">
         <div className="flex gap-4">
           <button
             onClick={() => {
@@ -466,6 +466,7 @@ export const Mandala = ({ data, onDataChange }: MandalaProps) => {
                     setExpandedCell(cell);
                   }}
                   zoomLevel={zoomLevel}
+                  onDataChange={onDataChange}
                 />
               </motion.div>
             )}

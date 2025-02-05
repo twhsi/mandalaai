@@ -10,6 +10,7 @@ interface EightyOneGridProps {
   onNavigateToParent: () => void;
   onCellSelect: (cell: MandalaCell) => void;
   zoomLevel: number;
+  onDataChange?: (newData: MandalaCell[]) => void;
 }
 
 // 定义九宫格位置映射
@@ -55,7 +56,8 @@ export const EightyOneGrid = ({
   data, 
   onNavigateToParent, 
   onCellSelect,
-  zoomLevel = 1
+  zoomLevel = 1,
+  onDataChange
 }: EightyOneGridProps) => {
   const [editingCell, setEditingCell] = useState<{ id: string; field: 'title' | 'content' } | null>(null);
   const centerCell = data[0];
@@ -80,10 +82,16 @@ export const EightyOneGrid = ({
         if (c.id === cell.id) {
           c[field] = value;
         }
+        if (c.children?.length) {
+          updateCellContent(c.children);
+        }
       });
     };
+
     updateCellContent(data);
     setEditingCell(null);
+    
+    onDataChange?.(data);
   };
 
   return (
