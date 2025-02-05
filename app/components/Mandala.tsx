@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { MandalaCell, ViewMode } from '../types/mandala';
+import { MandalaCell, ViewMode, MAIN_INDICES } from '../types/mandala';
 import { motion, AnimatePresence } from 'framer-motion';
 import { EightyOneGrid } from './EightyOneGrid';
 import html2canvas from 'html2canvas';
@@ -215,6 +215,136 @@ export const Mandala = ({ data, onDataChange }: MandalaProps) => {
     URL.revokeObjectURL(url);
   };
 
+  const importMarkdown = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const content = e.target?.result as string;
+      const lines = content.split('\n');
+      
+      let currentCell: MandalaCell | null = null;
+      let currentMainCell: MandalaCell | null = null;
+      let currentSubCell: MandalaCell | null = null;
+      let newData: MandalaCell[] = [];
+      let mainIndex = 0;
+      let subIndex = 0;
+      let contentBuffer = '';
+
+      const flushContent = () => {
+        if (contentBuffer && currentCell) {
+          if (currentCell.content) {
+            currentCell.content += '\n' + contentBuffer.trim();
+          } else {
+            currentCell.content = contentBuffer.trim();
+          }
+          contentBuffer = '';
+        }
+      };
+
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (!line) continue;
+
+        // 处理一级标题（中心主题）
+        if (line.startsWith('# ') && !line.startsWith('## ')) {
+          flushContent();
+          const title = line.substring(2).trim();
+          currentCell = {
+            id: 'main-center',
+            index: '',
+            title,
+            content: '',
+            children: []
+          };
+          newData = [currentCell];
+          currentMainCell = null;
+          currentSubCell = null;
+          continue;
+        }
+
+        // 处理二级标题（甲乙丙丁...）
+        if (line.startsWith('## ')) {
+          flushContent();
+          const title = line.substring(3).trim();
+          const index = MAIN_INDICES[mainIndex];
+          currentMainCell = {
+            id: `main-${mainIndex + 1}`,
+            index,
+            title: title.replace(`${index} `, '').replace(index, '').trim(),
+            content: '',
+            children: []
+          };
+          newData.push(currentMainCell);
+          currentCell = currentMainCell;
+          currentSubCell = null;
+          mainIndex++;
+          subIndex = 0;
+          continue;
+        }
+
+        // 处理三级标题（A-H）
+        if (line.startsWith('### ')) {
+          flushContent();
+          if (!currentMainCell) continue;
+          const title = line.substring(4).trim();
+          const subIndex_char = String.fromCharCode(65 + subIndex);
+          currentSubCell = {
+            id: `sub-${mainIndex}-${subIndex}`,
+            index: subIndex_char,
+            title: title.replace(`${subIndex_char} `, '').replace(subIndex_char, '').trim(),
+            content: ''
+          };
+          currentMainCell.children = currentMainCell.children || [];
+          currentMainCell.children.push(currentSubCell);
+          currentCell = currentSubCell;
+          subIndex++;
+          continue;
+        }
+
+        // 累积内容
+        contentBuffer += (contentBuffer ? '\n' : '') + line;
+      }
+
+      // 处理最后一个内容块
+      flushContent();
+
+      // 确保数据结构完整性
+      if (newData.length > 0) {
+        // 如果主题不足8个，用空主题填充
+        while (newData.length < 9) {
+          const index = MAIN_INDICES[newData.length - 1];
+          newData.push({
+            id: `main-${newData.length}`,
+            index,
+            title: '',
+            content: '',
+            children: []
+          });
+        }
+
+        // 确保每个主题都有8个子主题
+        newData.slice(1).forEach((mainCell, mainIdx) => {
+          const children = mainCell.children || [];
+          while (children.length < 8) {
+            children.push({
+              id: `sub-${mainIdx + 1}-${children.length}`,
+              index: String.fromCharCode(65 + children.length),
+              title: '',
+              content: ''
+            });
+          }
+          mainCell.children = children;
+        });
+
+        onDataChange?.(newData);
+      }
+    };
+    reader.readAsText(file);
+    event.target.value = '';
+  };
+
   const clearContent = () => {
     const clearCell = (cell: MandalaCell) => {
       cell.title = '';
@@ -263,6 +393,15 @@ export const Mandala = ({ data, onDataChange }: MandalaProps) => {
         >
           导出文本
         </button>
+        <label className="px-4 py-2 rounded bg-purple-500 text-white hover:bg-purple-600 transition-colors cursor-pointer">
+          导入文本
+          <input
+            type="file"
+            accept=".md,.txt"
+            className="hidden"
+            onChange={importMarkdown}
+          />
+        </label>
         <button
           onClick={() => {
             if (window.confirm('确定要清空所有内容吗？此操作不可撤销。')) {
