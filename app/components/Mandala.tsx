@@ -118,7 +118,7 @@ export const Mandala = ({ data, onDataChange }: MandalaProps) => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="grid grid-cols-3 grid-rows-3 gap-4 aspect-square"
+        className="grid grid-cols-3 grid-rows-3 gap-4 aspect-square bg-gray-50"
         style={{ 
           width: `${800 * zoomLevel}px`,
           margin: '0 auto',
@@ -220,10 +220,36 @@ export const Mandala = ({ data, onDataChange }: MandalaProps) => {
     if (!mandalaRef.current) return;
     
     try {
-      const canvas = await html2canvas(mandalaRef.current);
+      // 获取实际内容的尺寸
+      const gridElement = mandalaRef.current.querySelector('.grid') as HTMLElement;
+      if (!gridElement) return;
+
+      const { width, height } = gridElement.getBoundingClientRect();
+      
+      const canvas = await html2canvas(gridElement, {
+        width: Math.ceil(width),
+        height: Math.ceil(height),
+        scale: 2, // 提高清晰度
+        useCORS: true,
+        backgroundColor: '#f9fafb', // bg-gray-50 的颜色值
+        onclone: (clonedDoc, element) => {
+          // 移除所有动画相关的样式
+          element.style.transform = 'none';
+          element.style.transition = 'none';
+          
+          // 确保所有子元素也移除动画
+          element.querySelectorAll('*').forEach((el: Element) => {
+            if (el instanceof HTMLElement) {
+              el.style.transform = 'none';
+              el.style.transition = 'none';
+            }
+          });
+        }
+      });
+
       const link = document.createElement('a');
       link.download = `mandala-${new Date().toISOString().slice(0, 10)}.png`;
-      link.href = canvas.toDataURL();
+      link.href = canvas.toDataURL('image/png');
       link.click();
     } catch (error) {
       console.error('导出图片失败:', error);
@@ -495,6 +521,7 @@ export const Mandala = ({ data, onDataChange }: MandalaProps) => {
         <div 
           className="min-h-full flex items-center justify-center"
           ref={mandalaRef}
+          data-mandala-container
         >
           <AnimatePresence mode="wait">
             {viewMode === 'nine' ? (

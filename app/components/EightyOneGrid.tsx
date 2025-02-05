@@ -163,7 +163,7 @@ export const EightyOneGrid = ({
 
   return (
     <div 
-      className="grid grid-cols-3 grid-rows-3 gap-4 aspect-square" 
+      className="grid grid-cols-3 grid-rows-3 gap-4 aspect-square bg-gray-50" 
       style={{ 
         width: `${1200 * zoomLevel}px`, 
         margin: '0 auto',
