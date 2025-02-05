@@ -177,9 +177,10 @@ export const Mandala = ({ data, onDataChange }: MandalaProps) => {
                     />
                   ) : (
                     <h3 
-                      className="text-xl font-semibold cursor-pointer hover:text-blue-600 truncate"
+                      className="text-xl font-semibold cursor-pointer hover:text-blue-600 truncate leading-normal py-1"
                       onClick={() => handleEdit(cell, 'title')}
                       title={cell.title}
+                      style={{ lineHeight: '1.5', minHeight: '1.5em' }}
                     >
                       {cell.title}
                     </h3>

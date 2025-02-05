@@ -106,7 +106,7 @@ export const EightyOneGrid = ({
         )}
 
         {/* 标题部分 */}
-        <div className="text-center mb-1 mt-1 mx-4 flex items-center justify-center" style={{ minHeight: '24px' }}>
+        <div className="text-center mb-1 mt-1 mx-4 flex items-center justify-center" style={{ minHeight: '32px' }}>
           {isEditing && editingCell.field === 'title' ? (
             <input
               type="text"
@@ -118,9 +118,17 @@ export const EightyOneGrid = ({
             />
           ) : (
             <div 
-              className="text-sm font-semibold cursor-pointer hover:text-blue-600 px-1 py-0.5 truncate"
+              className="text-sm font-semibold cursor-pointer hover:text-blue-600 px-1 py-1"
               onClick={() => handleEdit(cell, 'title')}
-              style={{ lineHeight: '1.4', wordBreak: 'break-word' }}
+              style={{ 
+                lineHeight: '1.5', 
+                minHeight: '1.5em',
+                display: '-webkit-box',
+                WebkitLineClamp: '2',
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis'
+              }}
               title={cell.title}
             >
               {cell.title}
