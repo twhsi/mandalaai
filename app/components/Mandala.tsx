@@ -24,11 +24,47 @@ const GRID_POSITIONS = [
   { gridArea: '3 / 3 / 4 / 4' }, // 右下 8
 ];
 
+// 添加放大图标组件
+const MagnifyIcon = ({ className = "", onClick }: { className?: string, onClick?: () => void }) => (
+  <svg 
+    className={className} 
+    onClick={onClick}
+    viewBox="0 0 24 24" 
+    fill="none" 
+    stroke="currentColor" 
+    strokeWidth="2" 
+    strokeLinecap="round" 
+    strokeLinejoin="round"
+  >
+    <circle cx="11" cy="11" r="8"></circle>
+    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+    <line x1="11" y1="8" x2="11" y2="14"></line>
+    <line x1="8" y1="11" x2="14" y2="11"></line>
+  </svg>
+);
+
+const ResetIcon = ({ className = "", onClick }: { className?: string, onClick?: () => void }) => (
+  <svg 
+    className={className} 
+    onClick={onClick}
+    viewBox="0 0 24 24" 
+    fill="none" 
+    stroke="currentColor" 
+    strokeWidth="2" 
+    strokeLinecap="round" 
+    strokeLinejoin="round"
+  >
+    <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+    <path d="M3 3v5h5"></path>
+  </svg>
+);
+
 export const Mandala = ({ data, onDataChange }: MandalaProps) => {
   const [viewMode, setViewMode] = useState<ViewMode>('nine');
   const [expandedCell, setExpandedCell] = useState<MandalaCell | null>(null);
   const [hoveredIndex, setHoveredIndex] = useState<string | null>(null);
   const [editingCell, setEditingCell] = useState<{ id: string; field: 'title' | 'content' } | null>(null);
+  const [zoomLevel, setZoomLevel] = useState(1);
   const mandalaRef = useRef<HTMLDivElement>(null);
 
   const handleIndexClick = (cell: MandalaCell, index: number, event: React.MouseEvent) => {
@@ -64,6 +100,14 @@ export const Mandala = ({ data, onDataChange }: MandalaProps) => {
     return [expandedCell, ...(expandedCell.children || [])];
   };
 
+  const handleZoomIn = () => {
+    setZoomLevel(prev => prev + 0.2);
+  };
+
+  const handleReset = () => {
+    setZoomLevel(1);
+  };
+
   const renderNineGrid = () => {
     const currentData = getCurrentGridData();
     const isSubGrid = !!expandedCell;
@@ -75,7 +119,11 @@ export const Mandala = ({ data, onDataChange }: MandalaProps) => {
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         className="grid grid-cols-3 grid-rows-3 gap-4 aspect-square"
-        style={{ maxWidth: '800px', margin: '0 auto' }}
+        style={{ 
+          width: `${800 * zoomLevel}px`,
+          margin: '0 auto',
+          transition: 'width 0.3s ease'
+        }}
       >
         {currentData.map((cell, index) => {
           const isCenter = index === 0;
@@ -91,7 +139,7 @@ export const Mandala = ({ data, onDataChange }: MandalaProps) => {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.8 }}
               transition={{ duration: 0.3 }}
-              className={`bg-white rounded-lg shadow-lg p-4 ${
+              className={`bg-white rounded-lg shadow-lg p-4 relative ${
                 isCenter ? 'bg-blue-50' : ''
               }`}
               style={GRID_POSITIONS[index]}
@@ -363,85 +411,116 @@ export const Mandala = ({ data, onDataChange }: MandalaProps) => {
   };
 
   return (
-    <div className="w-full max-w-6xl mx-auto p-4">
-      <div className="flex gap-4 mb-4 flex-wrap justify-center">
-        <button
-          onClick={() => {
-            setViewMode('nine');
-            setExpandedCell(null);
-          }}
-          className={`px-4 py-2 rounded transition-colors ${
-            viewMode === 'nine' ? 'bg-blue-500 text-white' : 'bg-gray-200'
-          }`}
-        >
-          九宫格
-        </button>
-        <button
-          onClick={() => setViewMode('eightyone')}
-          className={`px-4 py-2 rounded transition-colors ${
-            viewMode === 'eightyone' ? 'bg-blue-500 text-white' : 'bg-gray-200'
-          }`}
-        >
-          八十一宫格
-        </button>
-        <button
-          onClick={exportToImage}
-          className="px-4 py-2 rounded bg-green-500 text-white hover:bg-green-600 transition-colors"
-        >
-          导出图片
-        </button>
-        <button
-          onClick={exportToMarkdown}
-          className="px-4 py-2 rounded bg-purple-500 text-white hover:bg-purple-600 transition-colors"
-        >
-          导出文本
-        </button>
-        <label className="px-4 py-2 rounded bg-purple-500 text-white hover:bg-purple-600 transition-colors cursor-pointer">
-          导入文本
-          <input
-            type="file"
-            accept=".md,.txt"
-            className="hidden"
-            onChange={importMarkdown}
-          />
-        </label>
-        <button
-          onClick={() => {
-            if (window.confirm('确定要清空所有内容吗？此操作不可撤销。')) {
-              clearContent();
-            }
-          }}
-          className="px-4 py-2 rounded bg-red-500 text-white hover:bg-red-600 transition-colors"
-        >
-          清空内容
-        </button>
+    <div className="min-h-screen flex flex-col bg-gray-50">
+      <div className="flex gap-4 p-4 flex-wrap justify-center items-center bg-gray-50 sticky top-0 z-50">
+        <div className="flex gap-4">
+          <button
+            onClick={() => {
+              setViewMode('nine');
+              setExpandedCell(null);
+            }}
+            className={`px-4 py-2 rounded transition-colors ${
+              viewMode === 'nine' ? 'bg-blue-500 text-white' : 'bg-gray-200'
+            }`}
+          >
+            九宫格
+          </button>
+          <button
+            onClick={() => setViewMode('eightyone')}
+            className={`px-4 py-2 rounded transition-colors ${
+              viewMode === 'eightyone' ? 'bg-blue-500 text-white' : 'bg-gray-200'
+            }`}
+          >
+            八十一宫格
+          </button>
+        </div>
+
+        <div className="flex gap-4">
+          <button
+            onClick={exportToImage}
+            className="px-4 py-2 rounded bg-green-500 text-white hover:bg-green-600 transition-colors"
+          >
+            导出图片
+          </button>
+          <button
+            onClick={exportToMarkdown}
+            className="px-4 py-2 rounded bg-purple-500 text-white hover:bg-purple-600 transition-colors"
+          >
+            导出文本
+          </button>
+          <label className="px-4 py-2 rounded bg-purple-500 text-white hover:bg-purple-600 transition-colors cursor-pointer">
+            导入文本
+            <input
+              type="file"
+              accept=".md,.txt"
+              className="hidden"
+              onChange={importMarkdown}
+            />
+          </label>
+          <button
+            onClick={() => {
+              if (window.confirm('确定要清空所有内容吗？此操作不可撤销。')) {
+                clearContent();
+              }
+            }}
+            className="px-4 py-2 rounded bg-red-500 text-white hover:bg-red-600 transition-colors"
+          >
+            清空内容
+          </button>
+        </div>
+
+        <div className="flex gap-2 items-center">
+          <button
+            onClick={handleZoomIn}
+            className="p-2 rounded bg-gray-200 hover:bg-gray-300 transition-colors"
+            title="放大"
+          >
+            <MagnifyIcon className="w-5 h-5" />
+          </button>
+          <button
+            onClick={handleReset}
+            className="p-2 rounded bg-gray-200 hover:bg-gray-300 transition-colors"
+            title="还原大小"
+          >
+            <ResetIcon className="w-5 h-5" />
+          </button>
+          <span className="text-sm text-gray-500">
+            {Math.round(zoomLevel * 100)}%
+          </span>
+        </div>
       </div>
 
-      <div ref={mandalaRef}>
-        <AnimatePresence mode="wait">
-          {viewMode === 'nine' ? (
-            renderNineGrid()
-          ) : (
-            <motion.div
-              key="eightyone-grid"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-            >
-              <EightyOneGrid
-                data={data}
-                onNavigateToParent={() => {
-                  setViewMode('nine');
-                  setExpandedCell(null);
-                }}
-                onCellSelect={(cell) => {
-                  setViewMode('nine');
-                  setExpandedCell(cell);
-                }}
-              />
-            </motion.div>
-          )}
-        </AnimatePresence>
+      <div className="flex-1 py-4">
+        <div 
+          className="min-h-full flex items-center justify-center"
+          ref={mandalaRef}
+        >
+          <AnimatePresence mode="wait">
+            {viewMode === 'nine' ? (
+              renderNineGrid()
+            ) : (
+              <motion.div
+                key="eightyone-grid"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+              >
+                <EightyOneGrid
+                  data={data}
+                  onNavigateToParent={() => {
+                    setViewMode('nine');
+                    setExpandedCell(null);
+                  }}
+                  onCellSelect={(cell) => {
+                    setViewMode('nine');
+                    setExpandedCell(cell);
+                  }}
+                  zoomLevel={zoomLevel}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
     </div>
   );

@@ -8,6 +8,7 @@ interface EightyOneGridProps {
   data: MandalaCell[];
   onNavigateToParent: () => void;
   onCellSelect: (cell: MandalaCell) => void;
+  zoomLevel: number;
 }
 
 // 定义九宫格位置映射
@@ -49,8 +50,12 @@ const CENTER_COLORS = [
   'bg-teal-100',    // 右下大宫格的中心
 ];
 
-
-export const EightyOneGrid = ({ data, onNavigateToParent, onCellSelect }: EightyOneGridProps) => {
+export const EightyOneGrid = ({ 
+  data, 
+  onNavigateToParent, 
+  onCellSelect,
+  zoomLevel = 1
+}: EightyOneGridProps) => {
   const [editingCell, setEditingCell] = useState<{ id: string; field: 'title' | 'content' } | null>(null);
   const centerCell = data[0];
   const mainThemes = data.slice(1);
@@ -149,7 +154,14 @@ export const EightyOneGrid = ({ data, onNavigateToParent, onCellSelect }: Eighty
   };
 
   return (
-    <div className="grid grid-cols-3 grid-rows-3 gap-4 aspect-square" style={{ maxWidth: '1200px', margin: '0 auto' }}>
+    <div 
+      className="grid grid-cols-3 grid-rows-3 gap-4 aspect-square" 
+      style={{ 
+        width: `${1200 * zoomLevel}px`, 
+        margin: '0 auto',
+        transition: 'width 0.3s ease'
+      }}
+    >
       {/* 中心大格子 */}
       <div
         className={`grid grid-cols-3 grid-rows-3 gap-2 rounded-lg p-2 ${GRID_COLORS[0]}`}
