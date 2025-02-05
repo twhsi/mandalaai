@@ -6,6 +6,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { EightyOneGrid } from './EightyOneGrid';
 import { GridContainer } from './GridContainer';
 import html2canvas from 'html2canvas';
+import { SubGrid } from './SubGrid';
+import { MandalaCard } from './MandalaCard';
 
 interface MandalaProps {
   data: MandalaCell[];
@@ -115,93 +117,21 @@ export const Mandala = ({ data, onDataChange }: MandalaProps) => {
 
     return (
       <GridContainer zoomLevel={zoomLevel}>
-        {currentData.map((cell, index) => {
-          const isCenter = index === 0;
-          const canExpand = !isCenter && !isSubGrid && cell.children && cell.children.length > 0;
-          const canCollapse = isSubGrid && isCenter;
-          const isEditing = editingCell?.id === cell.id;
-
-          return (
-            <motion.div
-              key={cell.id}
-              layout
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8 }}
-              transition={{ duration: 0.3 }}
-              className={`bg-white rounded-lg shadow-lg p-4 relative ${
-                isCenter ? 'bg-blue-50' : ''
-              }`}
-              style={GRID_POSITIONS[index]}
-            >
-              <div className="relative flex flex-col h-full">
-                {/* 序号部分 - 绝对定位 */}
-                {cell.index && (
-                  <div 
-                    className="absolute flex items-center"
-                    onMouseEnter={() => (canExpand || canCollapse) && setHoveredIndex(cell.id)}
-                    onMouseLeave={() => setHoveredIndex(null)}
-                    onClick={(e) => handleIndexClick(cell, index, e)}
-                  >
-                    <span className="text-2xl font-bold text-blue-600 cursor-pointer min-w-[32px]">
-                      {cell.index}
-                    </span>
-                    {hoveredIndex === cell.id && (canExpand || canCollapse) && (
-                      <span className="text-blue-500 text-xl ml-1">
-                        {canCollapse ? '↑' : '↓'}
-                      </span>
-                    )}
-                  </div>
-                )}
-
-                {/* 标题部分 - 居中显示，避开序号 */}
-                <div className="text-center mb-2 mt-1 mx-6">
-                  {isEditing && editingCell.field === 'title' ? (
-                    <input
-                      type="text"
-                      className="w-full text-center text-xl font-semibold border-b border-blue-500 focus:outline-none bg-transparent"
-                      defaultValue={cell.title}
-                      autoFocus
-                      onBlur={(e) => handleEditComplete(cell, 'title', e.target.value)}
-                      onKeyPress={(e) => e.key === 'Enter' && handleEditComplete(cell, 'title', e.currentTarget.value)}
-                    />
-                  ) : (
-                    <h3 
-                      className="text-xl font-semibold cursor-pointer hover:text-blue-600 truncate leading-normal py-1"
-                      onClick={() => handleEdit(cell, 'title')}
-                      title={cell.title}
-                      style={{ lineHeight: '1.5', minHeight: '1.5em' }}
-                    >
-                      {cell.title}
-                    </h3>
-                  )}
-                </div>
-
-                {/* 内容部分 - 占据剩余空间，添加滚动条 */}
-                <div 
-                  className="flex-1 cursor-pointer overflow-hidden"
-                  onClick={() => handleEdit(cell, 'content')}
-                >
-                  {isEditing && editingCell.field === 'content' ? (
-                    <textarea
-                      className="w-full h-full min-h-[80px] text-gray-600 border border-blue-500 rounded p-2 focus:outline-none bg-transparent resize-none"
-                      defaultValue={cell.content}
-                      autoFocus
-                      onBlur={(e) => handleEditComplete(cell, 'content', e.target.value)}
-                      style={{ height: 'calc(100% - 8px)' }}
-                    />
-                  ) : (
-                    <div className="h-full overflow-y-auto pr-2 custom-scrollbar">
-                      <p className="text-gray-600 hover:text-blue-600 whitespace-pre-wrap">
-                        {cell.content}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </motion.div>
-          );
-        })}
+        {currentData.map((cell, index) => (
+          <MandalaCard
+            key={cell.id}
+            cell={cell}
+            position={GRID_POSITIONS[index]}
+            isCenter={index === 0}
+            isMainCell={!isSubGrid && index !== 0}
+            backgroundColor={index === 0 ? 'bg-blue-50' : undefined}
+            onIndexClick={(cell, event) => handleIndexClick(cell, index, event)}
+            onEdit={handleEdit}
+            onEditComplete={handleEditComplete}
+            isEditing={editingCell?.id === cell.id}
+            editingField={editingCell?.field}
+          />
+        ))}
       </GridContainer>
     );
   };

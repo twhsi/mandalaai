@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import { MandalaCell } from '../types/mandala';
-import { motion } from 'framer-motion';
 import { GridContainer } from './GridContainer';
+import { SubGrid } from './SubGrid';
 
 interface EightyOneGridProps {
   data: MandalaCell[];
@@ -75,7 +75,6 @@ export const EightyOneGrid = ({
   };
 
   const handleEditComplete = (cell: MandalaCell, field: 'title' | 'content', value: string) => {
-    // 更新所有相同 ID 的单元格
     const updateCellContent = (cells: MandalaCell[]) => {
       cells.forEach(c => {
         if (c.id === cell.id) {
@@ -83,156 +82,39 @@ export const EightyOneGrid = ({
         }
       });
     };
-
-    // 更新主题数组
     updateCellContent(data);
     setEditingCell(null);
-  };
-
-  const renderCell = (cell: MandalaCell, isMainCell: boolean = false) => {
-    const isEditing = editingCell?.id === cell.id;
-
-    return (
-      <div className="relative flex flex-col h-full">
-        {/* 序号部分 */}
-        {cell.index && (
-          <div className="absolute">
-            <span 
-              className={`text-lg font-bold text-blue-600 min-w-[24px] block ${isMainCell ? 'cursor-pointer hover:text-blue-800' : ''}`}
-              onClick={isMainCell ? (e) => handleIndexClick(cell, e) : undefined}
-            >
-              {cell.index}
-            </span>
-          </div>
-        )}
-
-        {/* 标题部分 */}
-        <div className="text-center mb-1 mt-1 mx-4 flex items-center justify-center" style={{ minHeight: '32px' }}>
-          {isEditing && editingCell.field === 'title' ? (
-            <input
-              type="text"
-              className="w-full text-center text-sm font-semibold border-b border-blue-500 focus:outline-none bg-transparent"
-              defaultValue={cell.title}
-              autoFocus
-              onBlur={(e) => handleEditComplete(cell, 'title', e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleEditComplete(cell, 'title', e.currentTarget.value)}
-            />
-          ) : (
-            <div 
-              className="text-sm font-semibold cursor-pointer hover:text-blue-600 px-1 py-1"
-              onClick={() => handleEdit(cell, 'title')}
-              style={{ 
-                lineHeight: '1.5', 
-                minHeight: '1.5em',
-                display: '-webkit-box',
-                WebkitLineClamp: '2',
-                WebkitBoxOrient: 'vertical',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis'
-              }}
-              title={cell.title}
-            >
-              {cell.title}
-            </div>
-          )}
-        </div>
-
-        {/* 内容部分 - 占据剩余空间，添加滚动条 */}
-        <div 
-          className="flex-1 cursor-pointer overflow-hidden"
-          onClick={() => handleEdit(cell, 'content')}
-        >
-          {isEditing && editingCell.field === 'content' ? (
-            <textarea
-              className="w-full h-full min-h-[40px] text-xs text-gray-600 border border-blue-500 rounded p-1 focus:outline-none bg-transparent resize-none"
-              defaultValue={cell.content}
-              autoFocus
-              onBlur={(e) => handleEditComplete(cell, 'content', e.target.value)}
-              style={{ height: 'calc(100% - 4px)' }}
-            />
-          ) : (
-            <div className="h-full overflow-y-auto pr-1 custom-scrollbar">
-              <div className="text-xs text-gray-600 text-center whitespace-pre-wrap">
-                {cell.content}
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-    );
   };
 
   return (
     <GridContainer zoomLevel={zoomLevel} baseWidth={1200}>
       {/* 中心大格子 */}
-      <div
-        className={`grid grid-cols-3 grid-rows-3 gap-2 rounded-lg p-2 ${GRID_COLORS[0]}`}
-        style={GRID_POSITIONS[0]}
-      >
-        {/* 中心主题 */}
-        <motion.div
-          key={centerCell.id}
-          layout
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.3 }}
-          className={`shadow-md p-2 rounded-lg ${CENTER_COLORS[0]}`}
-          style={GRID_POSITIONS[0]}
-        >
-          {renderCell(centerCell)}
-        </motion.div>
-
-        {/* 甲乙丙丁... */}
-        {mainThemes.slice(0, 8).map((mainCell, index) => (
-          <motion.div
-            key={mainCell.id}
-            layout
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.3, delay: index * 0.05 }}
-            className="bg-white shadow-md p-2 rounded-lg"
-            style={GRID_POSITIONS[index + 1]}
-          >
-            {renderCell(mainCell)}
-          </motion.div>
-        ))}
-      </div>
+      <SubGrid
+        cells={[centerCell, ...mainThemes.slice(0, 8)]}
+        position={GRID_POSITIONS[0]}
+        backgroundColor={GRID_COLORS[0]}
+        centerColor={CENTER_COLORS[0]}
+        onIndexClick={handleIndexClick}
+        onEdit={handleEdit}
+        onEditComplete={handleEditComplete}
+        editingCell={editingCell}
+        gridPositions={GRID_POSITIONS}
+      />
 
       {/* 周围的大格子（甲乙丙丁的展开） */}
       {mainThemes.slice(0, 8).map((mainCell, mainIndex) => (
-        <div
+        <SubGrid
           key={mainCell.id}
-          className={`grid grid-cols-3 grid-rows-3 gap-2 rounded-lg p-2 ${GRID_COLORS[mainIndex + 1]}`}
-          style={GRID_POSITIONS[mainIndex + 1]}
-        >
-          {/* 子主题中心（甲/乙/丙/丁...） */}
-          <motion.div
-            key={`${mainCell.id}-center`}
-            layout
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.3 }}
-            className={`shadow-md p-2 rounded-lg ${CENTER_COLORS[mainIndex + 1]}`}
-            style={GRID_POSITIONS[0]}
-          >
-            {renderCell(mainCell, true)}
-          </motion.div>
-
-          {/* A-H 子主题 */}
-          {mainCell.children?.map((subCell, subIndex) => (
-            <motion.div
-              key={subCell.id}
-              layout
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.3, delay: subIndex * 0.05 }}
-              className="bg-white shadow-md p-2 rounded-lg"
-              style={GRID_POSITIONS[subIndex + 1]}
-            >
-              {renderCell(subCell)}
-            </motion.div>
-          ))}
-        </div>
+          cells={[mainCell, ...(mainCell.children || [])]}
+          position={GRID_POSITIONS[mainIndex + 1]}
+          backgroundColor={GRID_COLORS[mainIndex + 1]}
+          centerColor={CENTER_COLORS[mainIndex + 1]}
+          onIndexClick={handleIndexClick}
+          onEdit={handleEdit}
+          onEditComplete={handleEditComplete}
+          editingCell={editingCell}
+          gridPositions={GRID_POSITIONS}
+        />
       ))}
     </GridContainer>
   );
