@@ -6,7 +6,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { EightyOneGrid } from './EightyOneGrid';
 import { GridContainer } from './GridContainer';
 import html2canvas from 'html2canvas';
-import { SubGrid } from './SubGrid';
 import { MandalaCard } from './MandalaCard';
 
 interface MandalaProps {
@@ -66,7 +65,6 @@ export const Mandala = ({ data: initialData, onDataChange }: MandalaProps) => {
   const [data, setData] = useState<MandalaCell[]>(initialData);
   const [viewMode, setViewMode] = useState<ViewMode>('nine');
   const [expandedCell, setExpandedCell] = useState<MandalaCell | null>(null);
-  const [hoveredIndex, setHoveredIndex] = useState<string | null>(null);
   const [editingCell, setEditingCell] = useState<{ id: string; field: 'title' | 'content' } | null>(null);
   const [zoomLevel, setZoomLevel] = useState(1);
   const mandalaRef = useRef<HTMLDivElement>(null);
