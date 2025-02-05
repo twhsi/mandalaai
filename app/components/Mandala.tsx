@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { MandalaCell, ViewMode, MAIN_INDICES } from '../types/mandala';
 import { motion, AnimatePresence } from 'framer-motion';
 import { EightyOneGrid } from './EightyOneGrid';
@@ -62,13 +62,38 @@ const ResetIcon = ({ className = "", onClick }: { className?: string, onClick?: 
   </svg>
 );
 
-export const Mandala = ({ data, onDataChange }: MandalaProps) => {
+export const Mandala = ({ data: initialData, onDataChange }: MandalaProps) => {
+  const [data, setData] = useState<MandalaCell[]>(initialData);
   const [viewMode, setViewMode] = useState<ViewMode>('nine');
   const [expandedCell, setExpandedCell] = useState<MandalaCell | null>(null);
   const [hoveredIndex, setHoveredIndex] = useState<string | null>(null);
   const [editingCell, setEditingCell] = useState<{ id: string; field: 'title' | 'content' } | null>(null);
   const [zoomLevel, setZoomLevel] = useState(1);
   const mandalaRef = useRef<HTMLDivElement>(null);
+
+  // 使用useEffect来处理客户端的sessionStorage操作
+  useEffect(() => {
+    const savedData = sessionStorage.getItem('mandalaData');
+    if (savedData) {
+      try {
+        const parsedData = JSON.parse(savedData);
+        setData(parsedData);
+      } catch (error) {
+        console.error('Failed to parse saved data:', error);
+      }
+    }
+  }, []);
+
+  // 数据更新时保存到sessionStorage
+  const handleDataChange = (newData: MandalaCell[]) => {
+    setData(newData);
+    try {
+      sessionStorage.setItem('mandalaData', JSON.stringify(newData));
+    } catch (error) {
+      console.error('Failed to save data:', error);
+    }
+    onDataChange?.(newData);
+  };
 
   const handleIndexClick = (cell: MandalaCell, index: number, event: React.MouseEvent) => {
     event.stopPropagation();
@@ -89,9 +114,20 @@ export const Mandala = ({ data, onDataChange }: MandalaProps) => {
   };
 
   const handleEditComplete = (cell: MandalaCell, field: 'title' | 'content', value: string) => {
-    cell[field] = value;
+    const newData = [...data];
+    const updateCellContent = (cells: MandalaCell[]) => {
+      cells.forEach(c => {
+        if (c.id === cell.id) {
+          c[field] = value;
+        }
+        if (c.children?.length) {
+          updateCellContent(c.children);
+        }
+      });
+    };
+    updateCellContent(newData);
     setEditingCell(null);
-    onDataChange?.(data);
+    handleDataChange(newData);
   };
 
   const getCurrentGridData = () => {
@@ -336,7 +372,7 @@ export const Mandala = ({ data, onDataChange }: MandalaProps) => {
           mainCell.children = children;
         });
 
-        onDataChange?.(newData);
+        handleDataChange(newData);
       }
     };
     reader.readAsText(file);
@@ -354,7 +390,7 @@ export const Mandala = ({ data, onDataChange }: MandalaProps) => {
 
     const newData = [...data];
     newData.forEach(clearCell);
-    onDataChange?.(newData);
+    handleDataChange(newData);
   };
 
   return (
@@ -466,7 +502,7 @@ export const Mandala = ({ data, onDataChange }: MandalaProps) => {
                     setExpandedCell(cell);
                   }}
                   zoomLevel={zoomLevel}
-                  onDataChange={onDataChange}
+                  onDataChange={handleDataChange}
                 />
               </motion.div>
             )}
