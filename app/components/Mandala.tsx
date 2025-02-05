@@ -4,6 +4,7 @@ import { useState, useRef } from 'react';
 import { MandalaCell, ViewMode, MAIN_INDICES } from '../types/mandala';
 import { motion, AnimatePresence } from 'framer-motion';
 import { EightyOneGrid } from './EightyOneGrid';
+import { GridContainer } from './GridContainer';
 import html2canvas from 'html2canvas';
 
 interface MandalaProps {
@@ -113,18 +114,7 @@ export const Mandala = ({ data, onDataChange }: MandalaProps) => {
     const isSubGrid = !!expandedCell;
 
     return (
-      <motion.div
-        key={expandedCell?.id || 'main'}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="grid grid-cols-3 grid-rows-3 gap-4 aspect-square bg-gray-50"
-        style={{ 
-          width: `${800 * zoomLevel}px`,
-          margin: '0 auto',
-          transition: 'width 0.3s ease'
-        }}
-      >
+      <GridContainer zoomLevel={zoomLevel}>
         {currentData.map((cell, index) => {
           const isCenter = index === 0;
           const canExpand = !isCenter && !isSubGrid && cell.children && cell.children.length > 0;
@@ -212,7 +202,7 @@ export const Mandala = ({ data, onDataChange }: MandalaProps) => {
             </motion.div>
           );
         })}
-      </motion.div>
+      </GridContainer>
     );
   };
 

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { MandalaCell } from '../types/mandala';
 import { motion } from 'framer-motion';
+import { GridContainer } from './GridContainer';
 
 interface EightyOneGridProps {
   data: MandalaCell[];
@@ -162,14 +163,7 @@ export const EightyOneGrid = ({
   };
 
   return (
-    <div 
-      className="grid grid-cols-3 grid-rows-3 gap-4 aspect-square bg-gray-50" 
-      style={{ 
-        width: `${1200 * zoomLevel}px`, 
-        margin: '0 auto',
-        transition: 'width 0.3s ease'
-      }}
-    >
+    <GridContainer zoomLevel={zoomLevel} baseWidth={1200}>
       {/* 中心大格子 */}
       <div
         className={`grid grid-cols-3 grid-rows-3 gap-2 rounded-lg p-2 ${GRID_COLORS[0]}`}
@@ -240,6 +234,6 @@ export const EightyOneGrid = ({
           ))}
         </div>
       ))}
-    </div>
+    </GridContainer>
   );
 }; 
