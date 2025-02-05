@@ -129,17 +129,18 @@ export const Mandala = ({ data, onDataChange }: MandalaProps) => {
                     />
                   ) : (
                     <h3 
-                      className="text-xl font-semibold cursor-pointer hover:text-blue-600"
+                      className="text-xl font-semibold cursor-pointer hover:text-blue-600 truncate"
                       onClick={() => handleEdit(cell, 'title')}
+                      title={cell.title}
                     >
                       {cell.title}
                     </h3>
                   )}
                 </div>
 
-                {/* 内容部分 - 占据剩余空间 */}
+                {/* 内容部分 - 占据剩余空间，添加滚动条 */}
                 <div 
-                  className="flex-1 cursor-pointer"
+                  className="flex-1 cursor-pointer overflow-hidden"
                   onClick={() => handleEdit(cell, 'content')}
                 >
                   {isEditing && editingCell.field === 'content' ? (
@@ -151,9 +152,11 @@ export const Mandala = ({ data, onDataChange }: MandalaProps) => {
                       style={{ height: 'calc(100% - 8px)' }}
                     />
                   ) : (
-                    <p className="text-gray-600 hover:text-blue-600">
-                      {cell.content}
-                    </p>
+                    <div className="h-full overflow-y-auto pr-2 custom-scrollbar">
+                      <p className="text-gray-600 hover:text-blue-600 whitespace-pre-wrap">
+                        {cell.content}
+                      </p>
+                    </div>
                   )}
                 </div>
               </div>

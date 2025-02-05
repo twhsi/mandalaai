@@ -113,18 +113,19 @@ export const EightyOneGrid = ({ data, onNavigateToParent, onCellSelect }: Eighty
             />
           ) : (
             <div 
-              className="text-sm font-semibold cursor-pointer hover:text-blue-600 px-1 py-0.5"
+              className="text-sm font-semibold cursor-pointer hover:text-blue-600 px-1 py-0.5 truncate"
               onClick={() => handleEdit(cell, 'title')}
               style={{ lineHeight: '1.4', wordBreak: 'break-word' }}
+              title={cell.title}
             >
               {cell.title}
             </div>
           )}
         </div>
 
-        {/* 内容部分 - 占据剩余空间 */}
+        {/* 内容部分 - 占据剩余空间，添加滚动条 */}
         <div 
-          className="flex-1 cursor-pointer"
+          className="flex-1 cursor-pointer overflow-hidden"
           onClick={() => handleEdit(cell, 'content')}
         >
           {isEditing && editingCell.field === 'content' ? (
@@ -136,8 +137,10 @@ export const EightyOneGrid = ({ data, onNavigateToParent, onCellSelect }: Eighty
               style={{ height: 'calc(100% - 4px)' }}
             />
           ) : (
-            <div className="w-full h-full text-xs text-gray-600 text-center flex items-center justify-center p-1">
-              {cell.content}
+            <div className="h-full overflow-y-auto pr-1 custom-scrollbar">
+              <div className="text-xs text-gray-600 text-center whitespace-pre-wrap">
+                {cell.content}
+              </div>
             </div>
           )}
         </div>
