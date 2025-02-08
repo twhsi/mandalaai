@@ -8,6 +8,45 @@ import { GridContainer } from './GridContainer';
 import html2canvas from 'html2canvas';
 import { MandalaCard } from './MandalaCard';
 
+const ERROR_MESSAGES = {
+  NO_CENTER_THEME: `导入失败：未找到中心主题。\n\n正确的文本格式示例：
+# 中心主题
+中心主题的内容
+
+## 甲 主题1
+主题1的内容
+
+### A 子主题1
+子主题1的内容
+
+### B 子主题2
+子主题2的内容
+
+## 乙 主题2
+主题2的内容
+...`,
+
+  INVALID_FORMAT: `导入失败：文本格式不正确。\n\n请按照以下格式组织文本：
+1. 使用 # 开头表示中心主题
+2. 使用 ## 开头表示主要主题（甲、乙、丙...）
+3. 使用 ### 开头表示子主题（A、B、C...）
+4. 每个主题标题后面可以跟随内容
+
+示例：
+# 中心主题
+中心主题的内容
+
+## 甲 主题1
+主题1的内容
+
+### A 子主题1
+子主题1的内容`,
+
+  FILE_READ_ERROR: '文件读取失败，请重试。',
+  
+  CLEAR_CONFIRM: '确定要清空所有内容吗？此操作不可撤销。'
+};
+
 interface MandalaProps {
   data: MandalaCell[];
   onDataChange?: (newData: MandalaCell[]) => void;
@@ -256,6 +295,12 @@ export const Mandala = ({ data: initialData, onDataChange }: MandalaProps) => {
       const content = e.target?.result as string;
       const lines = content.split('\n');
       
+      // 检查是否包含一级标题（中心主题）
+      if (!lines.some(line => line.trim().startsWith('# ') && !line.trim().startsWith('## '))) {
+        alert(ERROR_MESSAGES.NO_CENTER_THEME);
+        return;
+      }
+      
       let currentCell: MandalaCell | null = null;
       let currentMainCell: MandalaCell | null = null;
       let currentSubCell: MandalaCell | null = null;
@@ -263,6 +308,7 @@ export const Mandala = ({ data: initialData, onDataChange }: MandalaProps) => {
       let mainIndex = 0;
       let subIndex = 0;
       let contentBuffer = '';
+      let hasValidStructure = false;
 
       const flushContent = () => {
         if (contentBuffer && currentCell) {
@@ -293,6 +339,7 @@ export const Mandala = ({ data: initialData, onDataChange }: MandalaProps) => {
           newData = [currentCell];
           currentMainCell = null;
           currentSubCell = null;
+          hasValidStructure = true;
           continue;
         }
 
@@ -342,6 +389,12 @@ export const Mandala = ({ data: initialData, onDataChange }: MandalaProps) => {
       // 处理最后一个内容块
       flushContent();
 
+      // 检查是否成功解析出有效的数据结构
+      if (!hasValidStructure || newData.length === 0) {
+        alert(ERROR_MESSAGES.INVALID_FORMAT);
+        return;
+      }
+
       // 确保数据结构完整性
       if (newData.length > 0) {
         // 如果主题不足8个，用空主题填充
@@ -373,6 +426,11 @@ export const Mandala = ({ data: initialData, onDataChange }: MandalaProps) => {
         handleDataChange(newData);
       }
     };
+
+    reader.onerror = () => {
+      alert(ERROR_MESSAGES.FILE_READ_ERROR);
+    };
+
     reader.readAsText(file);
     event.target.value = '';
   };
@@ -440,7 +498,7 @@ export const Mandala = ({ data: initialData, onDataChange }: MandalaProps) => {
           </label>
           <button
             onClick={() => {
-              if (window.confirm('确定要清空所有内容吗？此操作不可撤销。')) {
+              if (window.confirm(ERROR_MESSAGES.CLEAR_CONFIRM)) {
                 clearContent();
               }
             }}
