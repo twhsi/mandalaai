@@ -26,6 +26,27 @@ export const MandalaCard = ({
   editingField,
   backgroundColor
 }: MandalaCardProps) => {
+  const getPlaceholder = () => {
+    if (isCenter) {
+      return {
+        title: '点击添加中心主题',
+        content: '点击添加中心主题内容'
+      };
+    }
+    if (isMainCell) {
+      return {
+        title: `点击添加${cell.index}主题`,
+        content: `点击添加${cell.index}主题内容`
+      };
+    }
+    return {
+      title: `点击添加${cell.index}子主题`,
+      content: `点击添加${cell.index}子主题内容`
+    };
+  };
+
+  const placeholders = getPlaceholder();
+
   return (
     <motion.div
       key={cell.id}
@@ -63,7 +84,7 @@ export const MandalaCard = ({
             />
           ) : (
             <div 
-              className="text-sm font-semibold cursor-pointer hover:text-blue-600 px-1 py-1"
+              className={`text-sm font-semibold cursor-pointer hover:text-blue-600 px-1 py-1 ${!cell.title ? 'text-gray-400 italic' : ''}`}
               onClick={() => onEdit(cell, 'title')}
               style={{ 
                 lineHeight: '1.5', 
@@ -74,9 +95,9 @@ export const MandalaCard = ({
                 overflow: 'hidden',
                 textOverflow: 'ellipsis'
               }}
-              title={cell.title}
+              title={cell.title || placeholders.title}
             >
-              {cell.title}
+              {cell.title || placeholders.title}
             </div>
           )}
         </div>
@@ -101,8 +122,8 @@ export const MandalaCard = ({
             />
           ) : (
             <div className="h-full overflow-y-auto pr-1 custom-scrollbar">
-              <div className="text-xs text-gray-600 text-center whitespace-pre-wrap">
-                {cell.content}
+              <div className={`text-xs text-center whitespace-pre-wrap ${!cell.content ? 'text-gray-400 italic' : 'text-gray-600'}`}>
+                {cell.content || placeholders.content}
               </div>
             </div>
           )}
