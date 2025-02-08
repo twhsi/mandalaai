@@ -23,16 +23,34 @@ const DEFAULT_MODELS = [
   'gpt-3.5',
 ];
 
+const DEFAULT_SETTINGS: Settings = {
+  aiEnabled: false,
+  apiKey: '',
+  apiEndpoint: 'https://api.openai.com',
+  model: 'gpt-4o',
+  systemPrompt: `你是一个文本优化助手，帮助用户优化文本结构和内容。请保持文本的原有结构和格式，仅优化内容的表达和逻辑性。
+
+格式要求：
+1. 使用 # 开头表示中心主题
+2. 使用 ## 开头表示主要主题（甲、乙、丙...）
+3. 使用 ### 开头表示子主题（A、B、C...）
+4. 每个主题标题后面可以跟随内容
+
+示例：
+# 中心主题
+中心主题的内容
+
+## 甲 主题1
+主题1的内容
+
+### A 子主题1
+子主题1的内容`,
+  userPrompt: '请优化以下文本，使其表达更加清晰、逻辑更加连贯，同时保持原有的结构和格式：',
+};
+
 export default function SettingsPage() {
   const router = useRouter();
-  const [settings, setSettings] = useState<Settings>({
-    aiEnabled: false,
-    apiKey: '',
-    apiEndpoint: 'https://api.openai.com',
-    model: 'gpt-3.5-turbo',
-    systemPrompt: '',
-    userPrompt: '',
-  });
+  const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
   const [customModels, setCustomModels] = useState<string[]>([]);
   const [modelInput, setModelInput] = useState('');
 
@@ -76,6 +94,15 @@ export default function SettingsPage() {
     localStorage.setItem('customModels', JSON.stringify(newCustomModels));
   };
 
+  // 还原默认设置
+  const restoreDefaults = () => {
+    if (window.confirm('确定要还原为默认设置吗？此操作不可撤销。')) {
+      setSettings(DEFAULT_SETTINGS);
+      setCustomModels([]);
+      localStorage.removeItem('customModels');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-3xl mx-auto px-4">
@@ -114,6 +141,7 @@ export default function SettingsPage() {
                 className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                 value={settings.apiKey}
                 onChange={(e) => setSettings({ ...settings, apiKey: e.target.value })}
+                placeholder="输入 OpenAI API Key"
               />
             </div>
             <div className="space-y-2">
@@ -123,6 +151,7 @@ export default function SettingsPage() {
                 className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                 value={settings.apiEndpoint}
                 onChange={(e) => setSettings({ ...settings, apiEndpoint: e.target.value })}
+                placeholder="https://api.openai.com"
               />
             </div>
             <div className="space-y-2">
@@ -220,7 +249,13 @@ export default function SettingsPage() {
           </div>
 
           {/* 保存按钮 */}
-          <div className="flex justify-end">
+          <div className="flex justify-end gap-4">
+            <button
+              onClick={restoreDefaults}
+              className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+            >
+              还原默认设置
+            </button>
             <button
               onClick={saveSettings}
               className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
