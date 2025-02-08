@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { Modal } from '../components/Modal';
 
 interface Settings {
   aiEnabled: boolean;
@@ -53,6 +54,20 @@ export default function SettingsPage() {
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
   const [customModels, setCustomModels] = useState<string[]>([]);
   const [modelInput, setModelInput] = useState('');
+  const [modal, setModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    type: 'alert' | 'confirm';
+    onConfirm: () => void;
+    onCancel?: () => void;
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    type: 'alert',
+    onConfirm: () => {},
+  });
 
   // 从localStorage加载设置和自定义模型
   useEffect(() => {
@@ -73,6 +88,45 @@ export default function SettingsPage() {
     router.push('/');
   };
 
+  // 显示确认对话框
+  const showConfirm = (title: string, message: string, onConfirm: () => void) => {
+    setModal({
+      isOpen: true,
+      title,
+      message,
+      type: 'confirm',
+      onConfirm: () => {
+        onConfirm();
+        setModal(prev => ({ ...prev, isOpen: false }));
+      },
+      onCancel: () => setModal(prev => ({ ...prev, isOpen: false })),
+    });
+  };
+
+  // 显示提示对话框
+  const showAlert = (title: string, message: string) => {
+    setModal({
+      isOpen: true,
+      title,
+      message,
+      type: 'alert',
+      onConfirm: () => setModal(prev => ({ ...prev, isOpen: false })),
+    });
+  };
+
+  // 还原默认设置
+  const restoreDefaults = () => {
+    showConfirm(
+      '还原默认设置',
+      '确定要还原为默认设置吗？此操作不可撤销。',
+      () => {
+        setSettings(DEFAULT_SETTINGS);
+        setCustomModels([]);
+        localStorage.removeItem('customModels');
+      }
+    );
+  };
+
   // 添加自定义模型
   const addCustomModel = () => {
     if (modelInput && !DEFAULT_MODELS.includes(modelInput) && !customModels.includes(modelInput)) {
@@ -81,26 +135,27 @@ export default function SettingsPage() {
       setSettings({ ...settings, model: modelInput });
       setModelInput('');
       localStorage.setItem('customModels', JSON.stringify(newCustomModels));
+    } else if (DEFAULT_MODELS.includes(modelInput)) {
+      showAlert('添加失败', '该模型已在预设模型列表中。');
+    } else if (customModels.includes(modelInput)) {
+      showAlert('添加失败', '该模型已在自定义模型列表中。');
     }
   };
 
   // 删除自定义模型
   const removeCustomModel = (model: string) => {
-    const newCustomModels = customModels.filter(m => m !== model);
-    setCustomModels(newCustomModels);
-    if (settings.model === model) {
-      setSettings({ ...settings, model: DEFAULT_MODELS[0] });
-    }
-    localStorage.setItem('customModels', JSON.stringify(newCustomModels));
-  };
-
-  // 还原默认设置
-  const restoreDefaults = () => {
-    if (window.confirm('确定要还原为默认设置吗？此操作不可撤销。')) {
-      setSettings(DEFAULT_SETTINGS);
-      setCustomModels([]);
-      localStorage.removeItem('customModels');
-    }
+    showConfirm(
+      '删除模型',
+      `确定要删除模型 "${model}" 吗？`,
+      () => {
+        const newCustomModels = customModels.filter(m => m !== model);
+        setCustomModels(newCustomModels);
+        if (settings.model === model) {
+          setSettings({ ...settings, model: DEFAULT_MODELS[0] });
+        }
+        localStorage.setItem('customModels', JSON.stringify(newCustomModels));
+      }
+    );
   };
 
   return (
@@ -265,6 +320,15 @@ export default function SettingsPage() {
           </div>
         </div>
       </div>
+
+      <Modal
+        isOpen={modal.isOpen}
+        title={modal.title}
+        message={modal.message}
+        type={modal.type}
+        onConfirm={modal.onConfirm}
+        onCancel={modal.onCancel}
+      />
     </div>
   );
 } 

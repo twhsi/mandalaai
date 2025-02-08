@@ -8,6 +8,7 @@ import { GridContainer } from './GridContainer';
 import html2canvas from 'html2canvas';
 import { MandalaCard } from './MandalaCard';
 import { optimizeWithAI } from '../utils/openai';
+import { Modal } from './Modal';
 
 const ERROR_MESSAGES = {
   NO_CENTER_THEME: `导入失败：未找到中心主题。\n\n正确的文本格式示例：
@@ -125,6 +126,20 @@ export const Mandala = ({ data: initialData, onDataChange }: MandalaProps) => {
   const [editingCell, setEditingCell] = useState<{ id: string; field: 'title' | 'content' } | null>(null);
   const [zoomLevel, setZoomLevel] = useState(1);
   const mandalaRef = useRef<HTMLDivElement>(null);
+  const [modal, setModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    type: 'alert' | 'confirm';
+    onConfirm: () => void;
+    onCancel?: () => void;
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    type: 'alert',
+    onConfirm: () => {},
+  });
 
   // 使用useEffect来处理客户端的sessionStorage操作
   useEffect(() => {
@@ -304,6 +319,32 @@ export const Mandala = ({ data: initialData, onDataChange }: MandalaProps) => {
     URL.revokeObjectURL(url);
   };
 
+  // 显示确认对话框
+  const showConfirm = (title: string, message: string, onConfirm: () => void) => {
+    setModal({
+      isOpen: true,
+      title,
+      message,
+      type: 'confirm',
+      onConfirm: () => {
+        onConfirm();
+        setModal(prev => ({ ...prev, isOpen: false }));
+      },
+      onCancel: () => setModal(prev => ({ ...prev, isOpen: false })),
+    });
+  };
+
+  // 显示提示对话框
+  const showAlert = (title: string, message: string) => {
+    setModal({
+      isOpen: true,
+      title,
+      message,
+      type: 'alert',
+      onConfirm: () => setModal(prev => ({ ...prev, isOpen: false })),
+    });
+  };
+
   const importMarkdown = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -326,8 +367,7 @@ export const Mandala = ({ data: initialData, onDataChange }: MandalaProps) => {
           try {
             processedContent = await optimizeWithAI(content);
           } catch (error) {
-            console.error('AI优化失败:', error);
-            alert(error instanceof Error ? error.message : '未知错误');
+            showAlert('AI优化失败', error instanceof Error ? error.message : '未知错误');
             // 如果AI优化失败，继续使用原始内容
           }
         }
@@ -337,7 +377,7 @@ export const Mandala = ({ data: initialData, onDataChange }: MandalaProps) => {
       
       // 检查是否包含一级标题（中心主题）
       if (!lines.some(line => line.trim().startsWith('# ') && !line.trim().startsWith('## '))) {
-        alert(ERROR_MESSAGES.NO_CENTER_THEME);
+        showAlert('导入失败', ERROR_MESSAGES.NO_CENTER_THEME);
         return;
       }
       
@@ -431,7 +471,7 @@ export const Mandala = ({ data: initialData, onDataChange }: MandalaProps) => {
 
       // 检查是否成功解析出有效的数据结构
       if (!hasValidStructure || newData.length === 0) {
-        alert(ERROR_MESSAGES.INVALID_FORMAT);
+        showAlert('导入失败', ERROR_MESSAGES.INVALID_FORMAT);
         return;
       }
 
@@ -467,24 +507,30 @@ export const Mandala = ({ data: initialData, onDataChange }: MandalaProps) => {
       }
     } catch (error) {
       console.error('导入失败:', error);
-      alert(error instanceof Error ? error.message : ERROR_MESSAGES.FILE_READ_ERROR);
+      showAlert('导入失败', error instanceof Error ? error.message : ERROR_MESSAGES.FILE_READ_ERROR);
     }
 
     event.target.value = '';
   };
 
   const clearContent = () => {
-    const clearCell = (cell: MandalaCell) => {
-      cell.title = '';
-      cell.content = '';
-      if (cell.children?.length) {
-        cell.children.forEach(clearCell);
-      }
-    };
+    showConfirm(
+      '清空内容',
+      ERROR_MESSAGES.CLEAR_CONFIRM,
+      () => {
+        const clearCell = (cell: MandalaCell) => {
+          cell.title = '';
+          cell.content = '';
+          if (cell.children?.length) {
+            cell.children.forEach(clearCell);
+          }
+        };
 
-    const newData = [...data];
-    newData.forEach(clearCell);
-    handleDataChange(newData);
+        const newData = [...data];
+        newData.forEach(clearCell);
+        handleDataChange(newData);
+      }
+    );
   };
 
   return (
@@ -535,11 +581,7 @@ export const Mandala = ({ data: initialData, onDataChange }: MandalaProps) => {
             />
           </label>
           <button
-            onClick={() => {
-              if (window.confirm(ERROR_MESSAGES.CLEAR_CONFIRM)) {
-                clearContent();
-              }
-            }}
+            onClick={clearContent}
             className="px-4 py-2 rounded bg-red-500 text-white hover:bg-red-600 transition-colors"
           >
             清空内容
@@ -623,6 +665,15 @@ export const Mandala = ({ data: initialData, onDataChange }: MandalaProps) => {
           </AnimatePresence>
         </div>
       </div>
+
+      <Modal
+        isOpen={modal.isOpen}
+        title={modal.title}
+        message={modal.message}
+        type={modal.type}
+        onConfirm={modal.onConfirm}
+        onCancel={modal.onCancel}
+      />
     </div>
   );
 }; 
