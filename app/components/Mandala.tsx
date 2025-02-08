@@ -7,6 +7,7 @@ import { EightyOneGrid } from './EightyOneGrid';
 import { GridContainer } from './GridContainer';
 import html2canvas from 'html2canvas';
 import { MandalaCard } from './MandalaCard';
+import { optimizeWithAI } from '../utils/openai';
 
 const ERROR_MESSAGES = {
   NO_CENTER_THEME: `导入失败：未找到中心主题。\n\n正确的文本格式示例：
@@ -97,6 +98,23 @@ const ResetIcon = ({ className = "", onClick }: { className?: string, onClick?: 
   >
     <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
     <path d="M3 3v5h5"></path>
+  </svg>
+);
+
+// 添加设置图标组件
+const SettingsIcon = ({ className = "", onClick }: { className?: string, onClick?: () => void }) => (
+  <svg 
+    className={className} 
+    onClick={onClick}
+    viewBox="0 0 24 24" 
+    fill="none" 
+    stroke="currentColor" 
+    strokeWidth="2" 
+    strokeLinecap="round" 
+    strokeLinejoin="round"
+  >
+    <circle cx="12" cy="12" r="3"></circle>
+    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
   </svg>
 );
 
@@ -286,14 +304,36 @@ export const Mandala = ({ data: initialData, onDataChange }: MandalaProps) => {
     URL.revokeObjectURL(url);
   };
 
-  const importMarkdown = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const importMarkdown = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const content = e.target?.result as string;
-      const lines = content.split('\n');
+    try {
+      const content = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => resolve(e.target?.result as string);
+        reader.onerror = () => reject(new Error(ERROR_MESSAGES.FILE_READ_ERROR));
+        reader.readAsText(file);
+      });
+
+      // 检查是否启用了AI优化
+      const settings = localStorage.getItem('mandalaSettings');
+      let processedContent = content;
+      
+      if (settings) {
+        const { aiEnabled } = JSON.parse(settings);
+        if (aiEnabled) {
+          try {
+            processedContent = await optimizeWithAI(content);
+          } catch (error) {
+            console.error('AI优化失败:', error);
+            alert(error instanceof Error ? error.message : '未知错误');
+            // 如果AI优化失败，继续使用原始内容
+          }
+        }
+      }
+
+      const lines = processedContent.split('\n');
       
       // 检查是否包含一级标题（中心主题）
       if (!lines.some(line => line.trim().startsWith('# ') && !line.trim().startsWith('## '))) {
@@ -425,13 +465,11 @@ export const Mandala = ({ data: initialData, onDataChange }: MandalaProps) => {
 
         handleDataChange(newData);
       }
-    };
+    } catch (error) {
+      console.error('导入失败:', error);
+      alert(error instanceof Error ? error.message : ERROR_MESSAGES.FILE_READ_ERROR);
+    }
 
-    reader.onerror = () => {
-      alert(ERROR_MESSAGES.FILE_READ_ERROR);
-    };
-
-    reader.readAsText(file);
     event.target.value = '';
   };
 
@@ -509,6 +547,13 @@ export const Mandala = ({ data: initialData, onDataChange }: MandalaProps) => {
         </div>
 
         <div className="flex gap-2 items-center">
+        <button
+            onClick={() => window.location.href = '/settings'}
+            className="p-2 rounded bg-gray-200 hover:bg-gray-300 transition-colors"
+            title="设置"
+          >
+            <SettingsIcon className="w-5 h-5" />
+          </button>
           <button
             onClick={handleZoomIn}
             className="p-2 rounded bg-gray-200 hover:bg-gray-300 transition-colors"
