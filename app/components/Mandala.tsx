@@ -9,6 +9,7 @@ import html2canvas from 'html2canvas';
 import { MandalaCard } from './MandalaCard';
 import { optimizeWithAI } from '../utils/openai';
 import { Modal } from './Modal';
+import { Loading } from './Loading';
 
 const ERROR_MESSAGES = {
   NO_CENTER_THEME: `导入失败：未找到中心主题。\n\n正确的文本格式示例：
@@ -140,6 +141,7 @@ export const Mandala = ({ data: initialData, onDataChange }: MandalaProps) => {
     type: 'alert',
     onConfirm: () => {},
   });
+  const [isLoading, setIsLoading] = useState(false);
 
   // 使用useEffect来处理客户端的sessionStorage操作
   useEffect(() => {
@@ -364,12 +366,15 @@ export const Mandala = ({ data: initialData, onDataChange }: MandalaProps) => {
       if (settings) {
         const { aiEnabled } = JSON.parse(settings);
         if (aiEnabled) {
+          setIsLoading(true);
           try {
             processedContent = await optimizeWithAI(content);
           } catch (error) {
+            setIsLoading(false);
             showAlert('AI优化失败', error instanceof Error ? error.message : '未知错误');
             // 如果AI优化失败，继续使用原始内容
           }
+          setIsLoading(false);
         }
       }
 
@@ -673,6 +678,11 @@ export const Mandala = ({ data: initialData, onDataChange }: MandalaProps) => {
         type={modal.type}
         onConfirm={modal.onConfirm}
         onCancel={modal.onCancel}
+      />
+
+      <Loading 
+        isOpen={isLoading} 
+        message="正在使用 AI 优化文本，请稍候..."
       />
     </div>
   );
