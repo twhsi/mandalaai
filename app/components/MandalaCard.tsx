@@ -63,8 +63,8 @@ export const MandalaCard = ({
         {cell.index && (
           <div className="absolute">
             <span 
-              className={`text-lg font-bold text-blue-600 min-w-[24px] block ${isMainCell ? 'cursor-pointer hover:text-blue-800' : ''}`}
-              onClick={isMainCell ? (e) => onIndexClick?.(cell, e) : undefined}
+              className={`text-lg font-bold text-blue-600 min-w-[24px] block cursor-pointer hover:text-blue-800`}
+              onClick={(e) => onIndexClick?.(cell, e)}
             >
               {cell.index}
             </span>
