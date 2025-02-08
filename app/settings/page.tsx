@@ -54,6 +54,8 @@ export default function SettingsPage() {
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
   const [customModels, setCustomModels] = useState<string[]>([]);
   const [modelInput, setModelInput] = useState('');
+  const [initialSettings, setInitialSettings] = useState<Settings>(DEFAULT_SETTINGS);
+  const [initialCustomModels, setInitialCustomModels] = useState<string[]>([]);
   const [modal, setModal] = useState<{
     isOpen: boolean;
     title: string;
@@ -74,18 +76,71 @@ export default function SettingsPage() {
     const savedSettings = localStorage.getItem('mandalaSettings');
     const savedCustomModels = localStorage.getItem('customModels');
     if (savedSettings) {
-      setSettings(JSON.parse(savedSettings));
+      const parsedSettings = JSON.parse(savedSettings);
+      setSettings(parsedSettings);
+      setInitialSettings(parsedSettings);
     }
     if (savedCustomModels) {
-      setCustomModels(JSON.parse(savedCustomModels));
+      const parsedCustomModels = JSON.parse(savedCustomModels);
+      setCustomModels(parsedCustomModels);
+      setInitialCustomModels(parsedCustomModels);
     }
   }, []);
 
+  // 检查设置是否有变化
+  const hasUnsavedChanges = () => {
+    return JSON.stringify(settings) !== JSON.stringify(initialSettings) ||
+           JSON.stringify(customModels) !== JSON.stringify(initialCustomModels);
+  };
+
+  // 验证设置
+  const validateSettings = () => {
+    if (settings.aiEnabled) {
+      if (!settings.apiKey.trim()) {
+        showAlert('验证失败', '启用 AI 自动优化时，API Key 不能为空');
+        return false;
+      }
+      if (!settings.apiEndpoint.trim()) {
+        showAlert('验证失败', '启用 AI 自动优化时，API 端点不能为空');
+        return false;
+      }
+    }
+    return true;
+  };
+
   // 保存设置和自定义模型到localStorage
-  const saveSettings = () => {
+  const saveSettings = (shouldReturn: boolean = false) => {
+    if (!validateSettings()) {
+      return false;
+    }
     localStorage.setItem('mandalaSettings', JSON.stringify(settings));
     localStorage.setItem('customModels', JSON.stringify(customModels));
-    router.push('/');
+    setInitialSettings(settings);
+    setInitialCustomModels(customModels);
+    if (shouldReturn) {
+      router.push('/');
+    }
+    return true;
+  };
+
+  // 处理返回操作
+  const handleReturn = () => {
+    if (hasUnsavedChanges()) {
+      if (!validateSettings()) {
+        return;
+      }
+      showConfirm(
+        '未保存的更改',
+        '您有未保存的更改，是否要保存？',
+        () => {
+          if (saveSettings(false)) {
+            router.push('/');
+          }
+        }
+      );
+    } else {
+      router.push('/');
+    }
   };
 
   // 显示确认对话框
@@ -164,7 +219,7 @@ export default function SettingsPage() {
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-2xl font-bold text-gray-900">设置</h1>
           <button
-            onClick={() => router.push('/')}
+            onClick={handleReturn}
             className="px-4 py-2 text-gray-600 hover:text-gray-900"
           >
             返回
@@ -312,7 +367,7 @@ export default function SettingsPage() {
               还原默认设置
             </button>
             <button
-              onClick={saveSettings}
+              onClick={() => saveSettings(true)}
               className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
             >
               保存设置
