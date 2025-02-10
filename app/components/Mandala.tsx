@@ -144,9 +144,9 @@ export const Mandala = ({ data: initialData, onDataChange }: MandalaProps) => {
   });
   const [isLoading, setIsLoading] = useState(false);
 
-  // 使用useEffect来处理客户端的sessionStorage操作
+  // 使用useEffect来处理客户端的localStorage操作
   useEffect(() => {
-    const savedData = sessionStorage.getItem('mandalaData');
+    const savedData = localStorage.getItem('mandalaData');
     if (savedData) {
       try {
         const parsedData = JSON.parse(savedData);
@@ -157,11 +157,11 @@ export const Mandala = ({ data: initialData, onDataChange }: MandalaProps) => {
     }
   }, []);
 
-  // 数据更新时保存到sessionStorage
+  // 数据更新时保存到localStorage
   const handleDataChange = (newData: MandalaCell[]) => {
     setData(newData);
     try {
-      sessionStorage.setItem('mandalaData', JSON.stringify(newData));
+      localStorage.setItem('mandalaData', JSON.stringify(newData));
     } catch (error) {
       console.error('Failed to save data:', error);
     }
