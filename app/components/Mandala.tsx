@@ -127,6 +127,7 @@ export const Mandala = ({ data: initialData, onDataChange }: MandalaProps) => {
   const [editingCell, setEditingCell] = useState<{ id: string; field: 'title' | 'content' } | null>(null);
   const [zoomLevel, setZoomLevel] = useState(1);
   const mandalaRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [modal, setModal] = useState<{
     isOpen: boolean;
     title: string;
@@ -372,7 +373,7 @@ export const Mandala = ({ data: initialData, onDataChange }: MandalaProps) => {
           } catch (error) {
             setIsLoading(false);
             showAlert('AI优化失败', error instanceof Error ? error.message : '未知错误');
-            return; // 如果AI优化失败，直接返回
+            return;
           }
           setIsLoading(false);
         }
@@ -510,12 +511,15 @@ export const Mandala = ({ data: initialData, onDataChange }: MandalaProps) => {
 
         handleDataChange(newData);
       }
+
+      // 重置文件输入
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     } catch (error) {
       console.error('导入失败:', error);
       showAlert('导入失败', error instanceof Error ? error.message : ERROR_MESSAGES.FILE_READ_ERROR);
     }
-
-    event.target.value = '';
   };
 
   const clearContent = () => {
@@ -583,6 +587,7 @@ export const Mandala = ({ data: initialData, onDataChange }: MandalaProps) => {
           <label className="px-4 py-2 rounded bg-purple-500 text-white hover:bg-purple-600 transition-colors cursor-pointer">
             导入文本
             <input
+              ref={fileInputRef}
               type="file"
               accept=".md,.txt"
               className="hidden"
