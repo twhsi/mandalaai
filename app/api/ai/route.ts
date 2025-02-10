@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server';
 
+// 声明使用 Edge Runtime
+export const runtime = 'edge';
+
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const OPENAI_API_ENDPOINT = process.env.OPENAI_API_ENDPOINT || 'https://api.openai.com';
 const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY;
