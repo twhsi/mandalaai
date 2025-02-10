@@ -76,7 +76,7 @@ export const MandalaCard = ({
           {isEditing && editingField === 'title' ? (
             <input
               type="text"
-              className="w-full text-center text-sm font-semibold border-b border-blue-500 focus:outline-none bg-transparent"
+              className="w-full text-center text-sm font-semibold border-b border-blue-500 focus:outline-none bg-transparent text-gray-900"
               defaultValue={cell.title}
               autoFocus
               onBlur={(e) => onEditComplete(cell, 'title', e.target.value)}
@@ -84,7 +84,7 @@ export const MandalaCard = ({
             />
           ) : (
             <div 
-              className={`text-sm font-semibold cursor-pointer hover:text-blue-600 px-1 py-1 ${!cell.title ? 'text-gray-400 italic' : ''}`}
+              className={`text-sm font-semibold cursor-pointer hover:text-blue-600 px-1 py-1 ${!cell.title ? 'text-gray-400 italic' : 'text-gray-900'}`}
               onClick={() => onEdit(cell, 'title')}
               style={{ 
                 lineHeight: '1.5', 
@@ -109,7 +109,7 @@ export const MandalaCard = ({
         >
           {isEditing && editingField === 'content' ? (
             <textarea
-              className="w-full h-full min-h-[40px] text-xs text-gray-600 border border-blue-500 rounded p-1 focus:outline-none bg-transparent resize-none"
+              className="w-full h-full min-h-[40px] text-xs border border-blue-500 rounded p-1 focus:outline-none bg-transparent resize-none text-gray-900"
               defaultValue={cell.content}
               autoFocus
               onBlur={(e) => onEditComplete(cell, 'content', e.target.value)}

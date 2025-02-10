@@ -248,7 +248,7 @@ export default function SettingsPage() {
               <label className="block text-sm font-medium text-gray-700">API Key</label>
               <input
                 type="password"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
                 value={settings.apiKey}
                 onChange={(e) => setSettings({ ...settings, apiKey: e.target.value })}
                 placeholder="输入 OpenAI API Key"
@@ -258,7 +258,7 @@ export default function SettingsPage() {
               <label className="block text-sm font-medium text-gray-700">API 端点</label>
               <input
                 type="text"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
                 value={settings.apiEndpoint}
                 onChange={(e) => setSettings({ ...settings, apiEndpoint: e.target.value })}
                 placeholder="https://api.openai.com"
@@ -315,7 +315,7 @@ export default function SettingsPage() {
                 <div className="flex gap-2">
                   <input
                     type="text"
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
                     value={modelInput}
                     onChange={(e) => setModelInput(e.target.value)}
                     placeholder="输入自定义模型名称"
@@ -343,7 +343,7 @@ export default function SettingsPage() {
             <div className="space-y-2">
               <label className="block text-sm font-medium text-gray-700">系统提示词</label>
               <textarea
-                className="w-full h-32 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 resize-none custom-scrollbar"
+                className="w-full h-32 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 resize-none custom-scrollbar bg-white text-gray-900"
                 value={settings.systemPrompt}
                 onChange={(e) => setSettings({ ...settings, systemPrompt: e.target.value })}
               />
@@ -351,7 +351,7 @@ export default function SettingsPage() {
             <div className="space-y-2">
               <label className="block text-sm font-medium text-gray-700">用户提示词</label>
               <textarea
-                className="w-full h-32 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 resize-none custom-scrollbar"
+                className="w-full h-32 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 resize-none custom-scrollbar bg-white text-gray-900"
                 value={settings.userPrompt}
                 onChange={(e) => setSettings({ ...settings, userPrompt: e.target.value })}
               />

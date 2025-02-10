@@ -548,7 +548,9 @@ export const Mandala = ({ data: initialData, onDataChange }: MandalaProps) => {
               setExpandedCell(null);
             }}
             className={`px-4 py-2 rounded transition-colors ${
-              viewMode === 'nine' ? 'bg-blue-500 text-white' : 'bg-gray-200'
+              viewMode === 'nine' 
+                ? 'bg-blue-500 text-white hover:bg-blue-600' 
+                : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
             }`}
           >
             九宫格
@@ -556,7 +558,9 @@ export const Mandala = ({ data: initialData, onDataChange }: MandalaProps) => {
           <button
             onClick={() => setViewMode('eightyone')}
             className={`px-4 py-2 rounded transition-colors ${
-              viewMode === 'eightyone' ? 'bg-blue-500 text-white' : 'bg-gray-200'
+              viewMode === 'eightyone' 
+                ? 'bg-blue-500 text-white hover:bg-blue-600' 
+                : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
             }`}
           >
             八十一宫格
@@ -594,23 +598,23 @@ export const Mandala = ({ data: initialData, onDataChange }: MandalaProps) => {
         </div>
 
         <div className="flex gap-2 items-center">
-        <button
+          <button
             onClick={() => window.location.href = '/settings'}
-            className="p-2 rounded bg-gray-200 hover:bg-gray-300 transition-colors"
+            className="p-2 rounded bg-gray-200 hover:bg-gray-300 text-gray-700 transition-colors"
             title="设置"
           >
             <SettingsIcon className="w-5 h-5" />
           </button>
           <button
             onClick={handleZoomIn}
-            className="p-2 rounded bg-gray-200 hover:bg-gray-300 transition-colors"
+            className="p-2 rounded bg-gray-200 hover:bg-gray-300 text-gray-700 transition-colors"
             title="放大"
           >
             <MagnifyIcon className="w-5 h-5" />
           </button>
           <button
             onClick={handleReset}
-            className="p-2 rounded bg-gray-200 hover:bg-gray-300 transition-colors"
+            className="p-2 rounded bg-gray-200 hover:bg-gray-300 text-gray-700 transition-colors"
             title="还原大小"
           >
             <ResetIcon className="w-5 h-5" />

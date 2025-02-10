@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Mandala } from './components/Mandala';
 import { MandalaCell, MAIN_INDICES } from './types/mandala';
 
@@ -50,7 +50,7 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-gray-50 py-8">
       <div className="container mx-auto px-4">
-        <h1 className="text-3xl font-bold text-center mb-8">永锡曼陀罗思维导图</h1>
+        <h1 className="text-3xl font-bold text-center mb-8 text-gray-900">永锡曼陀罗思维导图</h1>
         <Mandala data={data} onDataChange={handleDataChange} />
       </div>
     </main>
