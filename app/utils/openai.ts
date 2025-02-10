@@ -62,9 +62,25 @@ export async function optimizeWithAI(text: string): Promise<string> {
       })
     });
 
+    // 处理 HTTP 错误
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error?.message || '请求失败');
+      let errorMessage = '';
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.error?.message || '';
+      } catch {
+        // 如果无法解析错误响应
+        if (response.status === 404) {
+          errorMessage = `API 端点无法访问，请检查 ${isOpenAI ? 'OpenAI' : 'DeepSeek'} API 端点配置是否正确`;
+        } else if (response.status === 401) {
+          errorMessage = `API 认证失败，请检查 ${isOpenAI ? 'OpenAI' : 'DeepSeek'} API Key 是否正确`;
+        } else if (response.status === 429) {
+          errorMessage = '请求过于频繁，请稍后再试';
+        } else {
+          errorMessage = `请求失败 (HTTP ${response.status})`;
+        }
+      }
+      throw new Error(errorMessage || '请求失败');
     }
 
     const data = await response.json();
@@ -73,6 +89,6 @@ export async function optimizeWithAI(text: string): Promise<string> {
     if (error instanceof Error) {
       throw new Error(`AI 优化失败: ${error.message}`);
     }
-    throw error;
+    throw new Error('AI 优化失败: 未知错误');
   }
 } 

@@ -250,14 +250,47 @@ export default function SettingsPage() {
 
   // 还原默认设置
   const restoreDefaults = () => {
+    const apiType = settings.apiType;
+    const apiName = apiType === 'openai' ? 'OpenAI' : 'DeepSeek';
+    
     showConfirm(
       '还原默认设置',
-      '确定要还原为默认设置吗？此操作不可撤销。',
+      `确定要还原 ${apiName} 的提示词为默认设置吗？此操作不可撤销。`,
       () => {
-        setSettings(DEFAULT_SETTINGS);
-        setCustomModels([]);
-        localStorage.removeItem('customModels');
-        localStorage.removeItem('mandalaSettings');
+        // 只更新当前选中的 API 类型的提示词
+        if (apiType === 'openai') {
+          setSettings(prev => ({
+            ...prev,
+            systemPrompt: DEFAULT_SETTINGS.systemPrompt,
+            userPrompt: DEFAULT_SETTINGS.userPrompt,
+          }));
+          
+          const savedSettings = localStorage.getItem('mandalaSettings');
+          if (savedSettings) {
+            const parsedSettings = JSON.parse(savedSettings);
+            localStorage.setItem('mandalaSettings', JSON.stringify({
+              ...parsedSettings,
+              systemPrompt: DEFAULT_SETTINGS.systemPrompt,
+              userPrompt: DEFAULT_SETTINGS.userPrompt,
+            }));
+          }
+        } else {
+          setSettings(prev => ({
+            ...prev,
+            deepseekSystemPrompt: DEFAULT_SETTINGS.deepseekSystemPrompt,
+            deepseekUserPrompt: DEFAULT_SETTINGS.deepseekUserPrompt,
+          }));
+          
+          const savedSettings = localStorage.getItem('mandalaSettings');
+          if (savedSettings) {
+            const parsedSettings = JSON.parse(savedSettings);
+            localStorage.setItem('mandalaSettings', JSON.stringify({
+              ...parsedSettings,
+              deepseekSystemPrompt: DEFAULT_SETTINGS.deepseekSystemPrompt,
+              deepseekUserPrompt: DEFAULT_SETTINGS.deepseekUserPrompt,
+            }));
+          }
+        }
       }
     );
   };

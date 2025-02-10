@@ -372,7 +372,7 @@ export const Mandala = ({ data: initialData, onDataChange }: MandalaProps) => {
           } catch (error) {
             setIsLoading(false);
             showAlert('AI优化失败', error instanceof Error ? error.message : '未知错误');
-            // 如果AI优化失败，继续使用原始内容
+            return; // 如果AI优化失败，直接返回
           }
           setIsLoading(false);
         }
