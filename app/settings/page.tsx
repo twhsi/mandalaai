@@ -89,10 +89,7 @@ const DEFAULT_SETTINGS: Settings = {
 export default function SettingsPage() {
   const router = useRouter();
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
-  const [customModels, setCustomModels] = useState<string[]>([]);
-  const [modelInput, setModelInput] = useState('');
   const [initialSettings, setInitialSettings] = useState<Settings>(DEFAULT_SETTINGS);
-  const [initialCustomModels, setInitialCustomModels] = useState<string[]>([]);
   const [modal, setModal] = useState<{
     isOpen: boolean;
     title: string;
@@ -108,10 +105,9 @@ export default function SettingsPage() {
     onConfirm: () => {},
   });
 
-  // 从localStorage加载设置和自定义模型
+  // 从localStorage加载设置
   useEffect(() => {
     const savedSettings = localStorage.getItem('mandalaSettings');
-    const savedCustomModels = localStorage.getItem('customModels');
     if (savedSettings) {
       try {
         const parsedSettings = JSON.parse(savedSettings);
@@ -138,23 +134,11 @@ export default function SettingsPage() {
         setInitialSettings(DEFAULT_SETTINGS);
       }
     }
-    if (savedCustomModels) {
-      try {
-        const parsedCustomModels = JSON.parse(savedCustomModels);
-        setCustomModels(parsedCustomModels);
-        setInitialCustomModels(parsedCustomModels);
-      } catch (error) {
-        console.error('Failed to parse saved custom models:', error);
-        setCustomModels([]);
-        setInitialCustomModels([]);
-      }
-    }
   }, []);
 
   // 检查设置是否有变化
   const hasUnsavedChanges = () => {
-    return JSON.stringify(settings) !== JSON.stringify(initialSettings) ||
-           JSON.stringify(customModels) !== JSON.stringify(initialCustomModels);
+    return JSON.stringify(settings) !== JSON.stringify(initialSettings);
   };
 
   // 验证设置
@@ -191,15 +175,13 @@ export default function SettingsPage() {
     return true;
   };
 
-  // 保存设置和自定义模型到localStorage
+  // 保存设置到localStorage
   const saveSettings = (shouldReturn: boolean = false) => {
     if (!validateSettings()) {
       return false;
     }
     localStorage.setItem('mandalaSettings', JSON.stringify(settings));
-    localStorage.setItem('customModels', JSON.stringify(customModels));
     setInitialSettings(settings);
-    setInitialCustomModels(customModels);
     if (shouldReturn) {
       router.push('/');
     }
@@ -295,37 +277,6 @@ export default function SettingsPage() {
             }));
           }
         }
-      }
-    );
-  };
-
-  // 添加自定义模型
-  const addCustomModel = () => {
-    if (modelInput && !DEFAULT_MODELS.includes(modelInput) && !customModels.includes(modelInput)) {
-      const newCustomModels = [...customModels, modelInput];
-      setCustomModels(newCustomModels);
-      setSettings({ ...settings, model: modelInput });
-      setModelInput('');
-      localStorage.setItem('customModels', JSON.stringify(newCustomModels));
-    } else if (DEFAULT_MODELS.includes(modelInput)) {
-      showAlert('添加失败', '该模型已在预设模型列表中。');
-    } else if (customModels.includes(modelInput)) {
-      showAlert('添加失败', '该模型已在自定义模型列表中。');
-    }
-  };
-
-  // 删除自定义模型
-  const removeCustomModel = (model: string) => {
-    showConfirm(
-      '删除模型',
-      `确定要删除模型 "${model}" 吗？`,
-      () => {
-        const newCustomModels = customModels.filter(m => m !== model);
-        setCustomModels(newCustomModels);
-        if (settings.model === model) {
-          setSettings({ ...settings, model: DEFAULT_MODELS[0] });
-        }
-        localStorage.setItem('customModels', JSON.stringify(newCustomModels));
       }
     );
   };

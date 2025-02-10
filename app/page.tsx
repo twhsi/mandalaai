@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Mandala } from './components/Mandala';
 import { MandalaCell, MAIN_INDICES } from './types/mandala';
 
