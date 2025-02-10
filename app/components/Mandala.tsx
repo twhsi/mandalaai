@@ -621,19 +621,6 @@ export const Mandala = ({ data: initialData, onDataChange }: MandalaProps) => {
         </div>
       </div>
 
-      {/* 添加操作说明区域 */}
-      <div className="px-4 py-2 text-sm text-gray-600">
-        <div className="max-w-md mx-auto border border-gray-300 rounded-lg p-4 shadow-sm bg-blue-50/50">
-          <h3 className="font-semibold mb-2 text-center">使用说明</h3>
-          <div className="space-y-1">
-            <p>编辑：点击标题或内容区域进行编辑</p>
-            <p>保存：标题编辑时按 Enter 保存，内容编辑时按 Ctrl+Enter 保存</p>
-            <p>换行：内容编辑时按 Enter 换行</p>
-            <p>数据存储：刷新网页不会丢失内容，关闭标签页后内容会重置</p>
-          </div>
-        </div>
-      </div>
-
       <div className="flex-1 py-4">
         <div 
           className="min-h-full flex items-center justify-center"
