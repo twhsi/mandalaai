@@ -373,6 +373,10 @@ export const Mandala = ({ data: initialData, onDataChange }: MandalaProps) => {
           } catch (error) {
             setIsLoading(false);
             showAlert('AI优化失败', error instanceof Error ? error.message : '未知错误');
+            // 重置文件输入，以便能够重新选择相同的文件
+            if (fileInputRef.current) {
+              fileInputRef.current.value = '';
+            }
             return;
           }
           setIsLoading(false);
@@ -512,13 +516,17 @@ export const Mandala = ({ data: initialData, onDataChange }: MandalaProps) => {
         handleDataChange(newData);
       }
 
-      // 重置文件输入
+      // 重置文件输入，以便能够重新选择相同的文件
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
     } catch (error) {
       console.error('导入失败:', error);
       showAlert('导入失败', error instanceof Error ? error.message : ERROR_MESSAGES.FILE_READ_ERROR);
+      // 重置文件输入，以便能够重新选择相同的文件
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }
   };
 
