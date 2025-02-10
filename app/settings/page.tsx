@@ -8,6 +8,8 @@ interface Settings {
   aiEnabled: boolean;
   activeApi: 'openai' | 'deepseek';  // 当前激活的 API
   apiType: 'openai' | 'deepseek';    // 选项卡切换
+  useBuiltInOpenAI: boolean;         // 使用内置 OpenAI API 配置
+  useBuiltInDeepseek: boolean;       // 使用内置 DeepSeek API 配置
   apiKey: string;
   apiEndpoint: string;
   deepseekApiKey: string;
@@ -39,6 +41,8 @@ const DEFAULT_SETTINGS: Settings = {
   aiEnabled: false,
   activeApi: 'openai',
   apiType: 'openai',
+  useBuiltInOpenAI: false,
+  useBuiltInDeepseek: false,
   apiKey: '',
   apiEndpoint: 'https://api.openai.com',
   deepseekApiKey: '',
@@ -157,12 +161,12 @@ export default function SettingsPage() {
   const validateSettings = () => {
     if (settings.aiEnabled) {
       if (settings.activeApi === 'openai') {
-        if (!settings.apiKey?.trim()) {
-          showAlert('验证失败', '启用 AI 自动优化时，OpenAI API Key 不能为空');
+        if (!settings.useBuiltInOpenAI && !settings.apiKey?.trim()) {
+          showAlert('验证失败', '未使用内置配置时，OpenAI API Key 不能为空');
           return false;
         }
-        if (!settings.apiEndpoint?.trim()) {
-          showAlert('验证失败', '启用 AI 自动优化时，OpenAI API 端点不能为空');
+        if (!settings.useBuiltInOpenAI && !settings.apiEndpoint?.trim()) {
+          showAlert('验证失败', '未使用内置配置时，OpenAI API 端点不能为空');
           return false;
         }
         // 验证 OpenAI 模型
@@ -170,12 +174,12 @@ export default function SettingsPage() {
           setSettings(prev => ({ ...prev, model: DEFAULT_MODELS[0] }));
         }
       } else {
-        if (!settings.deepseekApiKey?.trim()) {
-          showAlert('验证失败', '启用 AI 自动优化时，DeepSeek API Key 不能为空');
+        if (!settings.useBuiltInDeepseek && !settings.deepseekApiKey?.trim()) {
+          showAlert('验证失败', '未使用内置配置时，DeepSeek API Key 不能为空');
           return false;
         }
-        if (!settings.deepseekApiEndpoint?.trim()) {
-          showAlert('验证失败', '启用 AI 自动优化时，DeepSeek API 端点不能为空');
+        if (!settings.useBuiltInDeepseek && !settings.deepseekApiEndpoint?.trim()) {
+          showAlert('验证失败', '未使用内置配置时，DeepSeek API 端点不能为空');
           return false;
         }
         // 验证 DeepSeek 模型
@@ -398,26 +402,42 @@ export default function SettingsPage() {
               {/* OpenAI API设置 */}
               <div className="space-y-4">
                 <h2 className="text-lg font-semibold text-gray-900">OpenAI API 设置</h2>
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">API Key</label>
-                  <input
-                    type="password"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
-                    value={settings.apiKey}
-                    onChange={(e) => setSettings({ ...settings, apiKey: e.target.value })}
-                    placeholder="输入 OpenAI API Key"
-                  />
+                <div className="flex items-center justify-between mb-4">
+                  <label className="text-sm font-medium text-gray-700">使用内置配置</label>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      className="sr-only peer"
+                      checked={settings.useBuiltInOpenAI}
+                      onChange={(e) => setSettings({ ...settings, useBuiltInOpenAI: e.target.checked })}
+                    />
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                  </label>
                 </div>
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">API 端点</label>
-                  <input
-                    type="text"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
-                    value={settings.apiEndpoint}
-                    onChange={(e) => setSettings({ ...settings, apiEndpoint: e.target.value })}
-                    placeholder="https://api.openai.com"
-                  />
-                </div>
+                {!settings.useBuiltInOpenAI && (
+                  <>
+                    <div className="space-y-2">
+                      <label className="block text-sm font-medium text-gray-700">API Key</label>
+                      <input
+                        type="password"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
+                        value={settings.apiKey}
+                        onChange={(e) => setSettings({ ...settings, apiKey: e.target.value })}
+                        placeholder="输入 OpenAI API Key"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="block text-sm font-medium text-gray-700">API 端点</label>
+                      <input
+                        type="text"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
+                        value={settings.apiEndpoint}
+                        onChange={(e) => setSettings({ ...settings, apiEndpoint: e.target.value })}
+                        placeholder="https://api.openai.com"
+                      />
+                    </div>
+                  </>
+                )}
                 <div className="space-y-2">
                   <label className="block text-sm font-medium text-gray-700">选择模型</label>
                   <div className="max-h-48 overflow-y-auto border border-gray-200 rounded-md custom-scrollbar">
@@ -463,26 +483,42 @@ export default function SettingsPage() {
               {/* DeepSeek API设置 */}
               <div className="space-y-4">
                 <h2 className="text-lg font-semibold text-gray-900">DeepSeek API 设置</h2>
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">API Key</label>
-                  <input
-                    type="password"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
-                    value={settings.deepseekApiKey}
-                    onChange={(e) => setSettings({ ...settings, deepseekApiKey: e.target.value })}
-                    placeholder="输入 DeepSeek API Key"
-                  />
+                <div className="flex items-center justify-between mb-4">
+                  <label className="text-sm font-medium text-gray-700">使用内置配置</label>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      className="sr-only peer"
+                      checked={settings.useBuiltInDeepseek}
+                      onChange={(e) => setSettings({ ...settings, useBuiltInDeepseek: e.target.checked })}
+                    />
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                  </label>
                 </div>
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">API 端点</label>
-                  <input
-                    type="text"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
-                    value={settings.deepseekApiEndpoint}
-                    onChange={(e) => setSettings({ ...settings, deepseekApiEndpoint: e.target.value })}
-                    placeholder="https://api.deepseek.com"
-                  />
-                </div>
+                {!settings.useBuiltInDeepseek && (
+                  <>
+                    <div className="space-y-2">
+                      <label className="block text-sm font-medium text-gray-700">API Key</label>
+                      <input
+                        type="password"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
+                        value={settings.deepseekApiKey}
+                        onChange={(e) => setSettings({ ...settings, deepseekApiKey: e.target.value })}
+                        placeholder="输入 DeepSeek API Key"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="block text-sm font-medium text-gray-700">API 端点</label>
+                      <input
+                        type="text"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
+                        value={settings.deepseekApiEndpoint}
+                        onChange={(e) => setSettings({ ...settings, deepseekApiEndpoint: e.target.value })}
+                        placeholder="https://api.deepseek.com"
+                      />
+                    </div>
+                  </>
+                )}
                 <div className="space-y-2">
                   <label className="block text-sm font-medium text-gray-700">选择模型</label>
                   <div className="max-h-48 overflow-y-auto border border-gray-200 rounded-md custom-scrollbar">
