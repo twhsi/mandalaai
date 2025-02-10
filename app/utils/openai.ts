@@ -1,9 +1,15 @@
-interface OpenAISettings {
+interface Settings {
+  aiEnabled: boolean;
+  activeApi: 'openai' | 'deepseek';
   apiKey: string;
   apiEndpoint: string;
+  deepseekApiKey: string;
+  deepseekApiEndpoint: string;
   model: string;
   systemPrompt: string;
   userPrompt: string;
+  deepseekSystemPrompt: string;
+  deepseekUserPrompt: string;
 }
 
 export async function optimizeWithAI(text: string): Promise<string> {
@@ -12,16 +18,24 @@ export async function optimizeWithAI(text: string): Promise<string> {
     throw new Error('未找到 API 设置');
   }
 
-  const {
-    apiKey,
-    apiEndpoint,
-    model,
-    systemPrompt,
-    userPrompt
-  } = JSON.parse(settings) as OpenAISettings;
+  const parsedSettings = JSON.parse(settings) as Settings;
+  if (!parsedSettings.aiEnabled) {
+    throw new Error('AI 优化功能未启用');
+  }
+
+  const isOpenAI = parsedSettings.activeApi === 'openai';
+  const apiKey = isOpenAI ? parsedSettings.apiKey : parsedSettings.deepseekApiKey;
+  const apiEndpoint = isOpenAI ? parsedSettings.apiEndpoint : parsedSettings.deepseekApiEndpoint;
+  const systemPrompt = isOpenAI ? parsedSettings.systemPrompt : parsedSettings.deepseekSystemPrompt;
+  const userPrompt = isOpenAI ? parsedSettings.userPrompt : parsedSettings.deepseekUserPrompt;
+  const model = parsedSettings.model;
 
   if (!apiKey) {
-    throw new Error('未设置 API Key');
+    throw new Error(`未设置 ${isOpenAI ? 'OpenAI' : 'DeepSeek'} API Key`);
+  }
+
+  if (!apiEndpoint) {
+    throw new Error(`未设置 ${isOpenAI ? 'OpenAI' : 'DeepSeek'} API 端点`);
   }
 
   try {
