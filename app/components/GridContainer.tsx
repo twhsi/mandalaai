@@ -11,12 +11,12 @@ interface GridContainerProps {
 export const GridContainer = ({ 
   children, 
   zoomLevel, 
-  baseWidth = 800,
+  baseWidth = 900,
   className = ""
 }: GridContainerProps) => {
   return (
     <motion.div
-      className={`grid grid-cols-3 grid-rows-3 gap-4 aspect-square bg-gray-50 ${className}`}
+      className={`grid grid-cols-3 grid-rows-3 gap-6 aspect-square bg-gray-50 ${className}`}
       style={{ 
         width: `${baseWidth * zoomLevel}px`,
         transition: 'width 0.3s ease'
