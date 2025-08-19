@@ -530,10 +530,56 @@ export const Mandala = ({ data: initialData, onDataChange }: MandalaProps) => {
     }
   };
 
-  const clearContent = () => {
+  // 清空當前顯示的九宮格
+  const clearCurrentGrid = () => {
+    const gridName = !expandedCell ? '主九宮格' : `${expandedCell.index}主題的九宮格`;
     showConfirm(
-      '清空内容',
-      ERROR_MESSAGES.CLEAR_CONFIRM,
+      '清空當前九宮格',
+      `確定要清空${gridName}的內容嗎？此操作不可撤銷。`,
+      () => {
+        const newData = [...data];
+        
+        if (!expandedCell) {
+          // 清空主九宮格（中心主題 + 八個主要方向）
+          const clearMainCell = (cell: MandalaCell) => {
+            cell.title = '';
+            cell.content = '';
+            // 不清空children，保留子主題
+          };
+          
+          // 清空中心主題
+          clearMainCell(newData[0]);
+          
+          // 清空八個主要方向的標題和內容
+          newData.slice(1).forEach(clearMainCell);
+        } else {
+          // 清空當前展開的子九宮格
+          const targetCell = newData.find(cell => cell.id === expandedCell.id);
+          if (targetCell) {
+            // 清空主題本身
+            targetCell.title = '';
+            targetCell.content = '';
+            
+            // 清空所有子主題
+            if (targetCell.children?.length) {
+              targetCell.children.forEach(child => {
+                child.title = '';
+                child.content = '';
+              });
+            }
+          }
+        }
+        
+        handleDataChange(newData);
+      }
+    );
+  };
+
+  // 清空整個曼陀羅（全部81宮格）
+  const clearAllContent = () => {
+    showConfirm(
+      '清空全部曼陀羅',
+      '確定要清空整個曼陀羅（全部81宮格）的內容嗎？此操作不可撤銷。',
       () => {
         const clearCell = (cell: MandalaCell) => {
           cell.title = '';
@@ -603,10 +649,18 @@ export const Mandala = ({ data: initialData, onDataChange }: MandalaProps) => {
             />
           </label>
           <button
-            onClick={clearContent}
-            className="px-4 py-2 rounded bg-red-500 text-white hover:bg-red-600 transition-colors"
+            onClick={clearCurrentGrid}
+            className="px-4 py-2 rounded bg-orange-500 text-white hover:bg-orange-600 transition-colors"
+            title={!expandedCell ? '清空主九宮格內容' : `清空${expandedCell.index}主題九宮格內容`}
           >
-            清空内容
+            清空當前格
+          </button>
+          <button
+            onClick={clearAllContent}
+            className="px-4 py-2 rounded bg-red-500 text-white hover:bg-red-600 transition-colors"
+            title="清空整個曼陀羅（全部81宮格）"
+          >
+            清空全部
           </button>
         </div>
 
